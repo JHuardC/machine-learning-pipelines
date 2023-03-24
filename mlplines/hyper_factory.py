@@ -12,8 +12,7 @@ Created on: Sat 31 Dec 2022
 ###################
 ### Imports
 from typing import TypeVar, Union
-from topic_modelling_pipelines.pipelines.abc import\
-    BaseHandler, HyperparameterHandlerMixin
+from mlplines.abc import BaseHandler, HyperparameterHandlerMixin
 from abc import abstractmethod
 
 ###################
