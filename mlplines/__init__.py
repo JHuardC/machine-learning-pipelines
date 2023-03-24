@@ -6,6 +6,5 @@ Created on: Thu 01 Sep 2022
 
 @author: Joe Huard
 """
-from topic_modelling_pipelines.pipelines._component_handler import\
-    ComponentHandler
-from topic_modelling_pipelines.pipelines._pipeline import ModellingPipeline
+from mlplines._component_handler import ComponentHandler
+from mlplines._pipeline import ModellingPipeline
