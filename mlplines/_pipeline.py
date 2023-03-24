@@ -11,11 +11,9 @@ import logging
 from typing import Callable, Literal, TypeVar, Union
 from pathlib import Path
 from collections.abc import Iterable, Sequence
-from topic_modelling_pipelines.pipelines._component_handler import\
-    ComponentHandler
-
-from topic_modelling_pipelines.pipelines.abc import AbstractModellingPipeline
-from topic_modelling_pipelines.utils import UniqueList
+from mlplines._component_handler import ComponentHandler
+from mlplines.abc import AbstractModellingPipeline
+from mlplines._special_entities import UniqueList
 from functools import singledispatchmethod
 
 ######################
