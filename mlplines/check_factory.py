@@ -12,14 +12,9 @@ Created on: Wed 01 Feb 2023
 """
 ### Imports
 from typing import TypeVar, Union
-from topic_modelling_pipelines.pipelines.abc import\
-    AbstractCheckModel, CheckModelTrue
-
-from topic_modelling_pipelines.pipelines.hyper_factory import\
-    AbstractHyperparameterHandler
-
-from topic_modelling_pipelines.pipelines.implement_factory import\
-    AbstractImplementHandler
+from mlplines.abc import AbstractCheckModel, CheckModelTrue
+from mlplines.hyper_factory import AbstractHyperparameterHandler
+from mlplines.implement_factory import AbstractImplementHandler
 
 ### Typing
 _Model = TypeVar('_Model')
