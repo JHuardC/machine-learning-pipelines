@@ -13,13 +13,12 @@ Created on: Tue 03 Jan 2023
 ### Imports
 from typing import TypeVar, Union
 from collections import namedtuple
-from topic_modelling_pipelines.pipelines.abc import\
+from mlplines.abc import\
     AbstractModellingPipeline,\
     BaseHandler,\
     ImplementHandlerMixin
 
-from topic_modelling_pipelines.pipelines.hyper_factory import\
-    AbstractHyperparameterHandler
+from mlplines.hyper_factory import AbstractHyperparameterHandler
 from abc import abstractmethod
 from collections.abc import Iterable
 
