@@ -9,18 +9,12 @@ Created on: Sun 01 Jan 2023
 ###################
 ### Imports
 from typing import Final, TypeVar, Union
-from topic_modelling_pipelines.pipelines.abc import\
-    AbstractComponetHandler, AbstractModellingPipeline
-
-from topic_modelling_pipelines.pipelines.hyper_factory import\
-    AbstractHyperparameterHandler
-
-from topic_modelling_pipelines.pipelines.implement_factory import\
-    AbstractImplementHandler
-
+from mlplines.abc import AbstractComponetHandler, AbstractModellingPipeline
+from mlplines.hyper_factory import AbstractHyperparameterHandler
+from mlplines.implement_factory import AbstractImplementHandler
 from pathlib import Path
 from functools import singledispatchmethod
-from itertools import zip_longest, starmap, compress
+from itertools import zip_longest, starmap
 from importlib import import_module
 from collections.abc import Iterable
 
@@ -29,7 +23,7 @@ class AliasLookupError(BaseException):
 
 ######################
 ### Constants
-PARENT_MODULE: Final = 'topic_modelling_pipelines.pipelines._builtins.'
+PARENT_MODULE: Final = 'mlplines._builtins.'
 
 ###################
 ### Typing
