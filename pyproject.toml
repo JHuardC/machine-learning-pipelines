@@ -1,0 +1,25 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+only-include = ["mlplines", "LICENSE.md", "README.md"]
+
+[project]
+name = "machine-learning-pipelines"
+version = "0.0.1"
+authors = [
+  { name="JHuardC", email="joehuard2711@gmail.com" },
+]
+description = "Coordinate transformations, training, and predicting using tools from multiple packages"
+readme = "README.md"
+requires-python = ">=3.10.9"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+]
+
+[project.urls]
+"Homepage" = "https://github.com/JHuardC/machine-learning-pipelines"
+"Bug Tracker" = "https://github.com/JHuardC/machine-learning-pipelines/issues"
