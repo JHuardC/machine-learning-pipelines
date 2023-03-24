@@ -8,14 +8,12 @@ Created on: Wed 01 Feb 2023
 """
 ### Imports
 from typing import Union, TypeVar
-from topic_modelling_pipelines.pipelines.abc import AbstractModellingPipeline
-from topic_modelling_pipelines.pipelines.hyper_factory import\
-    TrainOnInitializationHandler
-
-from topic_modelling_pipelines.pipelines.implement_factory import\
+from mlplines.abc import AbstractModellingPipeline
+from mlplines.hyper_factory import TrainOnInitializationHandler
+from mlplines.implement_factory import\
     UnsupervisedTrainOnInitImplementer, data_model
 
-from topic_modelling_pipelines.pipelines.check_factory import SubclassOfKey
+from mlplines.check_factory import SubclassOfKey
 from collections.abc import Iterable
 from collections import OrderedDict
 from gensim.interfaces import TransformationABC
