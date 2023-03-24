@@ -10,14 +10,14 @@ of those a minimal number have been made concrete.
 
 Created on: Thu 01 Sep 2022
 
-@author: Joe Huard
+@author: JHuardC
 """
 ### Imports
 from abc import abstractmethod, ABC
 from typing import TypeVar, Literal, Union, ClassVar
 from collections.abc import Iterable
 from itertools import chain, repeat
-from topic_modelling_pipelines.utils import UniqueList
+from mlplines._special_entities import UniqueList
 
 ######################
 ### Define Types
