@@ -18,6 +18,33 @@ The Machine Learning Pipelines (MLP) repo has been developed to help coordinate 
 - [Extending pipelines to handle new packages](#Extending-pipelines-to-handle-new-packages)
 - [The ModellingPipeline environment](#The-ModellingPipeline-environment)
 
+## Local Build
+
+Clone the project:
+
+```bash
+  git clone https://github.com/JHuardC/machine-learning-pipelines.git
+```
+
+Use of new virtual environment using Python 3.10.9 or later is recommended.
+
+Use editable install.
+
+Whilst in machine-learning-pipelines dir:
+
+```command
+  pip install -e .
+```
+
+Or:
+
+```command
+  pip install -e \path\to\machine-learning-pipelines
+```
+
+[Back to top](#Machine-Learning-Pipelines)
+
+
 ## Usage Example
 
 The `ModellingPipeline` class is the top level class used to coordinate the steps of a modelling process. To maximize flexibility the pipelines are designed to be mutable, allowing a user or another class to alter the pipeline; also, the `ModellingPipeline` contains methods to train and/or apply an individual modelling step, or a specified segment of the pipeline, or the entire pipeline.
