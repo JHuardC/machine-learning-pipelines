@@ -16,6 +16,11 @@ from gensim.parsing.preprocessing import\
     stem_text,\
     remove_stopwords
 
+from gensim.corpora import Dictionary
+from gensim.models import TfidfModel, LdaModel
+
+from mlplines import ComponentHandler, ModellingPipeline
+
 
 ### Constants
 DATA_PATH: Final[pl.Path] = pl.Path('./test/petitions_sample.pkl')
@@ -47,9 +52,5 @@ preprocess = partial(
 if __name__ == '__main__':
 
     df = DataFrame(stream_pickle(DATA_PATH))
-    df['full_text'] = df['full_text'].astype('string')
-    df['full_text'] = df['full_text'].str.lower()
-
-    text_data = df['full_text'].apply(preprocess)
-
-
+    df = df['full_text'].astype('string').str.lower()
+    df = df.apply(preprocess)
