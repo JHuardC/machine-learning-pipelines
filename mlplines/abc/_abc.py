@@ -524,6 +524,11 @@ class AbstractComponentHandler:
     def implement_handler(self) -> _ImplementHandler:
         pass
 
+    @property
+    @abstractmethod
+    def saveload_handler(self) -> _SaveLoadHandler:
+        pass
+
     @abstractmethod
     def _set_handlers(
         self, 
