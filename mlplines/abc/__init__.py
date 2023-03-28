@@ -12,7 +12,7 @@ from mlplines.abc._abc import\
     BaseHandler,\
     HyperparameterHandlerMixin,\
     ImplementHandlerMixin,\
-    AbstractComponetHandler,\
+    AbstractComponentHandler,\
     AbstractModellingPipeline
 
 __all__ = [
@@ -21,6 +21,6 @@ __all__ = [
     'BaseHandler',
     'HyperparameterHandlerMixin',
     'ImplementHandlerMixin',
-    'AbstractComponetHandler',
+    'AbstractComponentHandler',
     'AbstractModellingPipeline'
 ]
