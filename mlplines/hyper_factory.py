@@ -7,7 +7,7 @@ create a bespoke hyperparameter handler for a given model.
 
 Created on: Sat 31 Dec 2022
 
-@author: Joe Huard
+@author: JHuardC
 """
 ###################
 ### Imports
