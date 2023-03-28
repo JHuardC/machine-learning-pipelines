@@ -7,7 +7,7 @@ create a bespoke implement handler for a given model.
 
 Created on: Tue 03 Jan 2023
 
-@author: Joe Huard
+@author: JHuardC
 """
 ###################
 ### Imports
