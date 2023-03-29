@@ -20,11 +20,10 @@ from gensim.models import TfidfModel, LdaModel
 
 from mlplines import ComponentHandler, ModellingPipeline
 
-
 ### Constants
 DATA_PATH: Final[pl.Path] = pl.Path('./petitions_sample.pqt')
 
-
+### Functions
 preprocess = partial(
     preprocess_string,
     filters = [
@@ -43,6 +42,29 @@ preprocess = partial(
 
 if __name__ == '__main__':
 
-    df = read_parquet(DATA_PATH)
-    # df = df['full_text'].astype('string').str.lower()
-    # df = df.apply(preprocess)
+    corpora = read_parquet(DATA_PATH)
+    corpora = corpora['full_text'].str.lower()
+    corpora = corpora.apply(preprocess).tolist()
+
+    corpora = Dictionary(corpora)
+
+    sequence = [
+        dict(
+            step_name = 'tfidf',
+            model = TfidfModel,
+            init_kwargs = dict(smartirs = 'ltc')
+        ),
+        dict(
+            step_name = 'latent_var_model',
+            model = LdaModel,
+            init_kwargs = dict(
+                num_topics = 30, 
+                chunksize = 512,
+                minimum_probability = 0,
+                update_every = 1,
+                passes = 5
+            )
+        )
+    ]
+
+    pipeline = ModellingPipeline(sequence = sequence)
