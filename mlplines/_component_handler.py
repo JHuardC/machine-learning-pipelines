@@ -4,14 +4,15 @@ Component Handler class
 
 Created on: Sun 01 Jan 2023
 
-@author: Joe Huard
+@author: JHuardC
 """
 ###################
 ### Imports
 from typing import Final, TypeVar, Union
-from mlplines.abc import AbstractComponetHandler, AbstractModellingPipeline
+from mlplines.abc import AbstractComponentHandler, AbstractModellingPipeline
 from mlplines.hyper_factory import AbstractHyperparameterHandler
 from mlplines.implement_factory import AbstractImplementHandler
+from mlplines.saveload_factory import AbstractSaveLoadHandler
 from pathlib import Path
 from functools import singledispatchmethod
 from itertools import zip_longest, starmap
@@ -30,6 +31,7 @@ PARENT_MODULE: Final = 'mlplines._builtins.'
 _Model = TypeVar('_Model')
 HyperparameterHandler = AbstractHyperparameterHandler
 ImplementHandler = AbstractImplementHandler
+SaveLoadHandler = AbstractSaveLoadHandler
 ModellingPipeline = TypeVar(
     'ModellingPipeline',
     bound = AbstractModellingPipeline
@@ -39,7 +41,7 @@ _PathLike = TypeVar('_PathLike', str, Path)
 
 ######################
 ### Component Handler
-class ComponentHandler(AbstractComponetHandler):
+class ComponentHandler(AbstractComponentHandler):
     """
     Loads a model's corresponding implement and hyperparameter handlers.
 
@@ -65,6 +67,11 @@ class ComponentHandler(AbstractComponetHandler):
         only intended way to provide a value to this property is through
         the _set_handlers method.
 
+    saveload_handler: SaveLoadHandler.
+        Stores the saving and loading handler. No set function is given,
+        the only intended way to provide a value to this property is
+        through the _set_handlers method.
+
     model: object.
         Stores the model used in a specific step by the pipeline. On 
         setting the model _set_handlers is called to set the values of 
@@ -89,6 +96,7 @@ class ComponentHandler(AbstractComponetHandler):
     ### Declare attributes
     __hyperparameter_handler: HyperparameterHandler # Instance attr
     __implement_handler: ImplementHandler # Instance attr
+    __saveload_handler: SaveLoadHandler # Instance attr
 
     @property
     def model(self) -> Union[_Model, type[_Model]]:
@@ -107,6 +115,11 @@ class ComponentHandler(AbstractComponetHandler):
     @property
     def implement_handler(self) -> ImplementHandler:
         return self.__implement_handler
+
+
+    @property
+    def saveload_handler(self) -> SaveLoadHandler:
+        return self.__saveload_handler
 
 
     def __init__(
@@ -164,9 +177,13 @@ class ComponentHandler(AbstractComponetHandler):
     @_set_handlers.register(type)
     def _(self, model) -> None:
 
-        bases = [AbstractHyperparameterHandler, AbstractImplementHandler]
+        bases = [
+            AbstractHyperparameterHandler,
+            AbstractImplementHandler,
+            AbstractSaveLoadHandler
+        ]
 
-        hyper, imp = tuple(
+        hyper, imp, svld = tuple(
             starmap(
                 self._get_child, zip_longest([], bases, fillvalue = model)
             )
@@ -174,6 +191,7 @@ class ComponentHandler(AbstractComponetHandler):
         
         self.__hyperparameter_handler = hyper(step_name = self.step_name)
         self.__implement_handler = imp(step_name = self.step_name)
+        self.__saveload_handler = svld(step_name = self.step_name)
 
 
     def _get_child(
