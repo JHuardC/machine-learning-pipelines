@@ -305,6 +305,14 @@ class ComponentHandler(AbstractComponentHandler):
         raise AliasLookupError(error_msg)
 
 
+    def __setstate__(self):
+        raise NotImplementedError()
+    
+
+    def __getstate__(self):
+        raise NotImplementedError()
+
+
     def update_kwargs(
         self,
         pipeline_external_kwargs: dict,

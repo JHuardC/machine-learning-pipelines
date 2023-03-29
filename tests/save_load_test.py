@@ -6,6 +6,7 @@ from typing import Final, Union
 import pathlib as pl
 import pickle as pkl
 from functools import partial
+import numpy as np
 from pandas import DataFrame
 from gensim.parsing.preprocessing import\
     preprocess_string,\
@@ -23,7 +24,7 @@ from mlplines import ComponentHandler, ModellingPipeline
 
 
 ### Constants
-DATA_PATH: Final[pl.Path] = pl.Path('./test/petitions_sample.pkl')
+DATA_PATH: Final[pl.Path] = pl.Path('./petitions_sample.pqt')
 
 
 ### functions
@@ -52,5 +53,5 @@ preprocess = partial(
 if __name__ == '__main__':
 
     df = DataFrame(stream_pickle(DATA_PATH))
-    df = df['full_text'].astype('string').str.lower()
-    df = df.apply(preprocess)
+    # df = df['full_text'].astype('string').str.lower()
+    # df = df.apply(preprocess)
