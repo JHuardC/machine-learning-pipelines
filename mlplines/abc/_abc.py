@@ -149,8 +149,8 @@ class RootMixin:
         Class Attribute. Contains the methods for checking if this class
         is the correct handler class for the passed model.
 
-    Methods
-    -------
+    Class Methods
+    -------------
     get_match_description. Returns: str.
         maps to __check_model's method of the same name. Describes the
         conditions required for the Hyperparameter/Implement/SaveLoad
@@ -159,8 +159,24 @@ class RootMixin:
     match_cls_progeny. Returns: Iterable containing class or a subclass.
         Recursive class method. Returns correct handler class for the
         given model.
+
+    Abstract Methods
+    ----------------
+    __getstate__. Returns: dict.
+        Gets key instance attributes.
+    
+    __setstate__. Returns: None.
+        Sets key instance attributes.
     """
     __check_model: ClassVar[type[AbstractCheckModel]]
+
+    @abstractmethod
+    def __getstate__(self) -> dict:
+        pass
+
+    @abstractmethod
+    def __setstate__(self, state: dict) -> None:
+        pass
 
     @classmethod
     def match_cls_progeny(
@@ -259,6 +275,12 @@ class HyperparameterHandlerMixin(RootMixin):
         An initialized subclass will be called as a function to update
         a models' hyperparameters.
 
+    __getstate__. Returns: dict.
+        Gets key instance attributes.
+    
+    __setstate__. Returns: None.
+        Sets key instance attributes.
+
     Methods
     -------
     get_match_description. Returns: str.
@@ -313,6 +335,12 @@ class ImplementHandlerMixin(RootMixin):
 
     train_apply. Returns: Iterable.
         Trains and processes data X.
+
+    __getstate__. Returns: dict.
+        Gets key instance attributes.
+    
+    __setstate__. Returns: None.
+        Sets key instance attributes.
 
     Methods
     -------
@@ -380,6 +408,14 @@ class SaveLoadHandlerMixin(RootMixin):
         Class Attribute. Contains the methods for checking if this class
         is the correct handler class for the passed model.
 
+    Abstract Static Methods
+    -----------------------
+    __getstate__. Returns: dict.
+        Gets key instance attributes from model.
+    
+    __setstate__. Returns: None.
+        Sets key instance attributes for a model.
+
     Abstract Methods
     ----------------
     save. Returns: _Picklable
@@ -401,6 +437,16 @@ class SaveLoadHandlerMixin(RootMixin):
         Recursive class method. Returns correct handler class for the
         given model.
     """
+    @staticmethod
+    @abstractmethod
+    def __getstate__(model: _Model) -> dict:
+        pass
+
+    @staticmethod
+    @abstractmethod
+    def __setstate__(model: Union[_Model, type[_Model]], state: dict) -> None:
+        pass
+
     @abstractmethod
     def save(
         self,
