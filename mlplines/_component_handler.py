@@ -309,7 +309,31 @@ class ComponentHandler(AbstractComponentHandler):
         raise NotImplementedError()
     
 
-    def __getstate__(self):
+    def _get_handler_state(self) -> dict:
+        """
+        Gets the states for self and handler attributes, but not model's
+        state.
+        """
+
+        if isinstance(self.model, type):
+            model = self.model.__name__
+        else:
+            model: str = self.model.__class__.__name__
+        
+        state = dict(
+            step_name = self.step_name,
+            ext_lookup = str(self.ext_lookup),
+            hyper_state = self.hyperparameter_handler.__getstate__(),
+            implement_state = self.implement_handler.__getstate__(),
+            model_module = self.model.__module__,
+            model_class =  model
+        )
+
+        return state
+    
+
+    def __getstate__(self) -> dict:
+        state = self._get_handler_state()
         raise NotImplementedError()
 
 
