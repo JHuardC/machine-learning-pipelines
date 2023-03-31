@@ -446,8 +446,9 @@ class SaveLoadHandlerMixin(RootMixin):
     @abstractmethod
     def set_model_state(
         self,
-        model: _Model
-    ) -> _Picklable:
+        model: type[_Model],
+        state: dict
+    ) -> _Model:
         pass
 
     @abstractmethod
