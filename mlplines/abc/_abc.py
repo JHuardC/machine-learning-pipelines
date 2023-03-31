@@ -159,24 +159,8 @@ class RootMixin:
     match_cls_progeny. Returns: Iterable containing class or a subclass.
         Recursive class method. Returns correct handler class for the
         given model.
-
-    Abstract Methods
-    ----------------
-    __getstate__. Returns: dict.
-        Gets key instance attributes.
-    
-    __setstate__. Returns: None.
-        Sets key instance attributes.
     """
     __check_model: ClassVar[type[AbstractCheckModel]]
-
-    @abstractmethod
-    def __getstate__(self) -> dict:
-        pass
-
-    @abstractmethod
-    def __setstate__(self, state: dict) -> None:
-        pass
 
     @classmethod
     def match_cls_progeny(
@@ -295,6 +279,14 @@ class HyperparameterHandlerMixin(RootMixin):
         given model.
     """
     @abstractmethod
+    def __getstate__(self) -> dict:
+        pass
+
+    @abstractmethod
+    def __setstate__(self, state: dict) -> None:
+        pass
+
+    @abstractmethod
     def __call__(self, model: _Model) -> _Model:
         pass
 
@@ -356,6 +348,14 @@ class ImplementHandlerMixin(RootMixin):
         given model.
     """
     @abstractmethod
+    def __getstate__(self) -> dict:
+        pass
+
+    @abstractmethod
+    def __setstate__(self, state: dict) -> None:
+        pass
+
+    @abstractmethod
     def train(
         self,
         model: _Model,
@@ -408,21 +408,20 @@ class SaveLoadHandlerMixin(RootMixin):
         Class Attribute. Contains the methods for checking if this class
         is the correct handler class for the passed model.
 
-    Abstract Static Methods
-    -----------------------
-    __getstate__. Returns: dict.
-        Gets key instance attributes from model.
-    
-    __setstate__. Returns: None.
-        Sets key instance attributes for a model.
-
     Abstract Methods
     ----------------
-    save. Returns: _Picklable
+    get_model_state. Returns: _Picklable
+        Retrieves the model's state.
+
+    set_model_state. Returns: _Model.
+        Calls any internal load function used by the model.
+
+    save. Returns: PathLike
         Calls any internal save function used by the model.
 
     load. Returns: _Model.
-        Calls any internal load function used by the model.
+        Retrieves a saved state and calls any internal load function
+        used by the model.
 
     Methods
     -------
@@ -437,14 +436,20 @@ class SaveLoadHandlerMixin(RootMixin):
         Recursive class method. Returns correct handler class for the
         given model.
     """
-    @staticmethod
     @abstractmethod
-    def __getstate__(model: _Model) -> dict:
+    def get_model_state(
+        self,
+        Path: PathLike,
+        model: _Model
+    ) -> _Picklable:
         pass
 
-    @staticmethod
     @abstractmethod
-    def __setstate__(model: Union[_Model, type[_Model]], state: dict) -> None:
+    def set_model_state(
+        self,
+        Path: PathLike,
+        model: _Model
+    ) -> _Picklable:
         pass
 
     @abstractmethod
@@ -452,7 +457,7 @@ class SaveLoadHandlerMixin(RootMixin):
         self,
         Path: PathLike,
         model: _Model
-    ) -> _Picklable:
+    ) -> PathLike:
         pass
 
     @abstractmethod
