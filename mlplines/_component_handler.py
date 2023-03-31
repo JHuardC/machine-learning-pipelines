@@ -305,8 +305,26 @@ class ComponentHandler(AbstractComponentHandler):
         raise AliasLookupError(error_msg)
 
 
-    def __setstate__(self):
-        raise NotImplementedError()
+    def __setstate__(self, state: dict):
+        self.step_name = state.get('step_name', self.step_name)
+        self.ext_lookup = state.get('ext_lookup', self.ext_lookup)
+        
+        model: type[_Model] = getattr(
+                import_module(state['model_module']),
+                state['model_class']
+        )
+
+        self._set_handlers(model)
+        self.hyperparameter_handler.__setstate__(state = state['hyper_state'])
+        self.implement_handler.__setstate__(state = state['implement_state'])
+
+        if 'model_state' in state:
+            self.__model = self.saveload_handler.set_model_state(
+                model,
+                state['model_state']
+            )
+        else:
+            self.__model = model
     
 
     def _get_handler_state(self) -> dict:
@@ -334,7 +352,10 @@ class ComponentHandler(AbstractComponentHandler):
 
     def __getstate__(self) -> dict:
         state = self._get_handler_state()
-        raise NotImplementedError()
+        state.update(
+            model_state = self.saveload_handler.get_model_state(self.model)
+        )
+        return state
 
 
     def update_kwargs(
