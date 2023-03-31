@@ -8,23 +8,26 @@ Created on: Wed 01 Feb 2023
 """
 ### Imports
 from typing import Union, TypeVar
+from pathlib import Path
 from mlplines.abc import AbstractModellingPipeline
+from mlplines.saveload_factory import AbstractSaveLoadHandler
 from mlplines.hyper_factory import TrainOnInitializationHandler
 from mlplines.implement_factory import\
     UnsupervisedTrainOnInitImplementer, data_model
 
 from mlplines.check_factory import SubclassOfKey
-from collections.abc import Iterable
+from collections.abc import Iterable, Mapping
 from collections import OrderedDict
 from gensim.interfaces import TransformationABC
 from gensim.models.basemodel import BaseTopicModel
 
-##########
 ### Typing
 _Model = TypeVar('_Model')
 ModellingPipeline = AbstractModellingPipeline
 _GensimTransform = TransformationABC
 _GensimTopicModel = BaseTopicModel
+_PathLike = TypeVar('_PathLike', str, Path)
+_Picklable = TypeVar('_Picklable')
 
 ### Gensim check model and handlers
 class SubclassOfGensim(SubclassOfKey):
@@ -111,6 +114,12 @@ class ImplementGensimTransformer(UnsupervisedTrainOnInitImplementer):
 
     def _apply(self, model: _GensimTransform, X: Iterable) -> Iterable:
         return model[X]
+    
+    def __getstate__(self) -> dict:
+        return dict()
+    
+    def __setstate__(self, state: dict) -> None:
+        pass
 
 
 class GensimUpdatable(GensimNotUpdatable):
@@ -151,7 +160,28 @@ class ImplementGensimTopic(UnsupervisedTrainOnInitImplementer):
     ) -> data_model:
         model.update(X)
         return data_model(None, model)
-            
     
     def _apply(self, model: _GensimTopicModel, X: Iterable) -> Iterable:
         return model[X]
+    
+    def __getstate__(self) -> dict:
+        return dict()
+    
+    def __setstate__(self, state: dict) -> None:
+        pass
+
+
+class GensimSaveLoad(AbstractSaveLoadHandler):
+    __check_model = SubclassOfGensim
+
+    def get_model_state(self, model: _Model) -> _Picklable:
+        return model.__dict__
+    
+    def set_model_state(self, model: type[_Model], state: Mapping) -> _Model:
+        raise NotImplementedError()
+    
+    def save(self, to: _PathLike, model: _Model) -> _PathLike:
+        raise NotImplementedError()
+    
+    def load(self, model: type[_Model], path: _PathLike) -> _Model:
+        raise NotImplementedError()
