@@ -10,9 +10,12 @@ Created on: Tue 28 Mar 2023
 @author: JHuardC
 """
 ### Imports
+from typing import TypeVar
+from pathlib import Path
 from mlplines.abc import BaseHandler, SaveLoadHandlerMixin
 
 ### Types
+_PathLike = TypeVar('_PathLike', str, Path)
 
 ### Classes
 class AbstractSaveLoadHandler(BaseHandler, SaveLoadHandlerMixin):
@@ -27,14 +30,21 @@ class AbstractSaveLoadHandler(BaseHandler, SaveLoadHandlerMixin):
     __check_model: Concrete subclass of AbstractCheckModel.
         Class Attribute. Contains the methods for checking if this class
         is the correct handler class for the passed model.
-    
+
     Abstract Methods
     ----------------
-    save. Returns: _Picklable
+    get_model_state. Returns: _Picklable
+        Retrieves the model's state.
+
+    set_model_state. Returns: _Model.
+        Calls any internal load function used by the model.
+
+    save. Returns: PathLike
         Calls any internal save function used by the model.
 
     load. Returns: _Model.
-        Calls any internal load function used by the model.
+        Retrieves a saved state and calls any internal load function
+        used by the model.
     
     Methods
     -------
