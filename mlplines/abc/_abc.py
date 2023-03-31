@@ -462,7 +462,7 @@ class SaveLoadHandlerMixin(RootMixin):
     def load(
         self,
         model: type[_Model],
-        Path: PathLike
+        path: PathLike
     ) -> _Model:
         pass
 
