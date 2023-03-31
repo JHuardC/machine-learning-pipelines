@@ -439,7 +439,6 @@ class SaveLoadHandlerMixin(RootMixin):
     @abstractmethod
     def get_model_state(
         self,
-        Path: PathLike,
         model: _Model
     ) -> _Picklable:
         pass
@@ -447,7 +446,6 @@ class SaveLoadHandlerMixin(RootMixin):
     @abstractmethod
     def set_model_state(
         self,
-        Path: PathLike,
         model: _Model
     ) -> _Picklable:
         pass
@@ -455,7 +453,7 @@ class SaveLoadHandlerMixin(RootMixin):
     @abstractmethod
     def save(
         self,
-        Path: PathLike,
+        to: PathLike,
         model: _Model
     ) -> PathLike:
         pass
@@ -463,6 +461,7 @@ class SaveLoadHandlerMixin(RootMixin):
     @abstractmethod
     def load(
         self,
+        model: type[_Model],
         Path: PathLike
     ) -> _Model:
         pass
