@@ -15,7 +15,7 @@ Created on: Thu 01 Sep 2022
 ### Imports
 from abc import abstractmethod, ABC
 from typing import TypeVar, Literal, Union, ClassVar
-from collections.abc import Iterable
+from collections.abc import Iterable, Mapping
 from itertools import chain, repeat
 from pathlib import Path
 from mlplines._special_entities import UniqueList
@@ -447,7 +447,7 @@ class SaveLoadHandlerMixin(RootMixin):
     def set_model_state(
         self,
         model: type[_Model],
-        state: dict
+        state: Mapping
     ) -> _Model:
         pass
 
