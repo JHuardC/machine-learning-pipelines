@@ -99,6 +99,12 @@ class AbstractImplementHandler(BaseHandler, ImplementHandlerMixin):
 
     _apply: Iterable.
         Applies model to data.
+
+    __getstate__. Returns: dict.
+        Gets key instance attributes.
+    
+    __setstate__. Returns: None.
+        Sets key instance attributes.
         
     Methods
     -------
@@ -283,6 +289,12 @@ class SupervisedTrainOnInitImplementer(AbstractImplementHandler):
 
     _apply: Iterable.
         Applies model to data.
+
+    __getstate__. Returns: dict.
+        Gets key instance attributes.
+    
+    __setstate__. Returns: None.
+        Sets key instance attributes.
         
     Methods
     -------
@@ -398,6 +410,12 @@ class UnsupervisedTrainOnInitImplementer(AbstractImplementHandler):
 
     _apply: Iterable.
         Applies model to data.
+
+    __getstate__. Returns: dict.
+        Gets key instance attributes.
+    
+    __setstate__. Returns: None.
+        Sets key instance attributes.
         
     Methods
     -------
