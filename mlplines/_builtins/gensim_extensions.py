@@ -175,10 +175,14 @@ class GensimSaveLoad(AbstractSaveLoadHandler):
     __check_model = SubclassOfGensim
 
     def get_model_state(self, model: _Model) -> _Picklable:
-        return model.__dict__
+        raise NotImplementedError(
+            'Cannot use setstate or getstate on gensim models'
+        )
     
     def set_model_state(self, model: type[_Model], state: Mapping) -> _Model:
-        raise NotImplementedError()
+        raise NotImplementedError(
+            'Cannot use setstate or getstate on gensim models'
+        )
     
     def save(self, to: _PathLike, model: _Model) -> _PathLike:
         raise NotImplementedError()
