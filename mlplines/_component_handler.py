@@ -37,6 +37,7 @@ ModellingPipeline = TypeVar(
     bound = AbstractModellingPipeline
 )
 _PathLike = TypeVar('_PathLike', str, Path)
+_ComponentHandler = TypeVar('_ComponentHandler', bound = 'ComponentHandler')
 
 
 ######################
@@ -77,21 +78,29 @@ class ComponentHandler(AbstractComponentHandler):
         setting the model _set_handlers is called to set the values of 
         implement_handler and hyperparameter_handler.
 
+    Class Methods
+    -------------
+    load. Returns: _AbstractComponentHander.
+        Loads a saved ComponentHandler state.
+
     Methods
     -------
-    update_kwargs. Returns: None.
-        Calls hyperparameter handler to update the models 
-        hyperparameters, the model will be treated as newly instanced
-        on update.
+    apply. Returns: Iterable.
+        Calls implement handler to process data X on trained model.
+
+    save. Returns: _Picklable
+        Saves model and ComponentHandler wrapper.
 
     train. Returns: None.
         Calls implement handler to train the model on data X.
 
-    apply. Returns: Iterable.
-        Calls implement handler to process data X on trained model.
-
     train_apply. Returns: Iterable.
         Calls implement handler to train and process data X.
+
+    update_kwargs. Returns: None.
+        Calls hyperparameter handler to update the models 
+        hyperparameters, the model will be treated as newly instanced
+        on update.
     """
     ### Declare attributes
     __hyperparameter_handler: HyperparameterHandler # Instance attr
@@ -120,6 +129,45 @@ class ComponentHandler(AbstractComponentHandler):
     @property
     def saveload_handler(self) -> SaveLoadHandler:
         return self.__saveload_handler
+    
+    
+    @classmethod
+    def load(
+        cls: type[_ComponentHandler],
+        path: _PathLike,
+        reader: callable,
+        mode: str = 'r'
+    ) -> _ComponentHandler:
+        """
+        Loads a saved ComponentHandler state, supports model
+        persistency.
+
+        Parameters
+        ----------
+        path: subclass of str or pathlib.Path.
+            path to file containing saved state.
+
+        reader: callable.
+            A function that can parse the save file's format to python
+            data types. pickle.load for a .pkl or .pickle file, for
+            example.
+        
+        mode: str.
+            Mode in which file should be opened. Accepts only 'r' or
+            'rb'.
+        """
+        if mode not in {'r', 'rb'}:
+            raise ValueError(
+                f"Incorrect mode argument passed: {mode}.\nMust be 'r' or 'rb'"
+            )
+        with open(path, mode) as file:
+            state: dict = reader(file)
+        
+        model_state = state.pop('model_state')
+
+        instance: ComponentHandler = cls.__new__(cls = cls)
+        instance.set_handler_state(state = state)
+        instance.load_model(path = model_state)
 
 
     def __init__(
@@ -303,28 +351,6 @@ class ComponentHandler(AbstractComponentHandler):
             error_msg = f"len(candidates) = {len(candidates)}. Unknown error."
 
         raise AliasLookupError(error_msg)
-
-
-    def __setstate__(self, state: dict):
-        self.step_name = state.get('step_name', self.step_name)
-        self.ext_lookup = state.get('ext_lookup', self.ext_lookup)
-        
-        model: type[_Model] = getattr(
-                import_module(state['model_module']),
-                state['model_class']
-        )
-
-        self._set_handlers(model)
-        self.hyperparameter_handler.__setstate__(state = state['hyper_state'])
-        self.implement_handler.__setstate__(state = state['implement_state'])
-
-        if 'model_state' in state:
-            self.__model = self.saveload_handler.set_model_state(
-                model,
-                state['model_state']
-            )
-        else:
-            self.__model = model
     
 
     def _get_handler_state(self) -> dict:
@@ -332,7 +358,6 @@ class ComponentHandler(AbstractComponentHandler):
         Gets the states for self and handler attributes, but not model's
         state.
         """
-
         if isinstance(self.model, type):
             model = self.model.__name__
         else:
@@ -356,6 +381,61 @@ class ComponentHandler(AbstractComponentHandler):
             model_state = self.saveload_handler.get_model_state(self.model)
         )
         return state
+    
+
+    def set_handler_state(self, state: dict) -> None:
+        """
+        Sets values for self and handler attributes, but not for the
+        model.
+        """
+        self.step_name = state.get('step_name', self.step_name)
+        self.ext_lookup = state.get('ext_lookup', self.ext_lookup)
+        
+        model: type[_Model] = getattr(
+                import_module(state['model_module']),
+                state['model_class']
+        )
+
+        self._set_handlers(model)
+        self.hyperparameter_handler.__setstate__(state = state['hyper_state'])
+        self.implement_handler.__setstate__(state = state['implement_state'])
+
+        self.__model = model
+
+
+    def __setstate__(self, state: dict) -> None:
+        self._set_handler_state(state = state)
+
+        if 'model_state' in state:
+            self.__model = self.saveload_handler.set_model_state(
+                self.__model,
+                state['model_state']
+            )
+    
+
+    def load_model(
+        self,
+        path: _PathLike
+    ) -> None:
+        """
+        Loads a saved model state. Assumes model's module contains it's
+        own persistency functions.
+
+        Parameters
+        ----------
+        path: subclass of str or pathlib.Path.
+            path to file containing saved state.
+
+        reader: callable.
+            A function that can parse the save file's format to python
+            data types. pickle.load for a .pkl or .pickle file, for
+            example.
+        
+        mode: str.
+            Mode in which file should be opened. Accepts only 'r' or
+            'rb'.
+        """
+        self.__model = self.saveload_handler.load(self.__model, path)
 
 
     def update_kwargs(
