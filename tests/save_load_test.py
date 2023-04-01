@@ -19,9 +19,15 @@ from gensim.corpora import Dictionary
 from gensim.models import TfidfModel, LdaModel
 
 from mlplines import ComponentHandler, ModellingPipeline
+from tutils import go_to_ancestor
 
 ### Constants
-DATA_PATH: Final[pl.Path] = pl.Path('./petitions_sample.pqt')
+DATA_PATH: Final[pl.Path] = go_to_ancestor(
+    pl.Path().absolute()
+).joinpath(
+    'tests',
+    'petitions_sample.pqt'
+)
 
 ### Functions
 preprocess = partial(
