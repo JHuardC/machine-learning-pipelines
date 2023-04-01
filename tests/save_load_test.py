@@ -52,19 +52,21 @@ if __name__ == '__main__':
     corpora = corpora['full_text'].str.lower()
     corpora = corpora.apply(preprocess).tolist()
 
-    corpora = Dictionary(corpora)
+    corpus_dict = Dictionary(corpora)
+    corpora = [corpus_dict.doc2bow(text) for text in corpora]
 
     sequence = [
         dict(
             step_name = 'tfidf',
-            model = TfidfModel,
-            init_kwargs = dict(smartirs = 'ltc')
+            model = TfidfModel(),
+            init_kwargs = dict(smartirs = 'ltc', id2word = corpus_dict)
         ),
         dict(
             step_name = 'latent_var_model',
-            model = LdaModel,
+            model = LdaModel(),
             init_kwargs = dict(
-                num_topics = 30, 
+                id2word = corpus_dict,
+                num_topics = 30,
                 chunksize = 512,
                 minimum_probability = 0,
                 update_every = 1,
@@ -74,3 +76,5 @@ if __name__ == '__main__':
     ]
 
     pipeline = ModellingPipeline(sequence = sequence)
+
+    output = pipeline.train_apply_pipeline(X = corpora)
