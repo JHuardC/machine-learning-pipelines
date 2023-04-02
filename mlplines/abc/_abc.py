@@ -446,7 +446,7 @@ class SaveLoadHandlerMixin(RootMixin):
     @abstractmethod
     def set_model_state(
         self,
-        model: type[_Model],
+        model: _Model,
         state: Mapping
     ) -> _Model:
         pass
@@ -455,7 +455,8 @@ class SaveLoadHandlerMixin(RootMixin):
     def save(
         self,
         to: PathLike,
-        model: _Model
+        model: _Model,
+        **kwargs
     ) -> PathLike:
         pass
 
@@ -463,7 +464,8 @@ class SaveLoadHandlerMixin(RootMixin):
     def load(
         self,
         model: type[_Model],
-        path: PathLike
+        path: PathLike,
+        **kwargs
     ) -> _Model:
         pass
 
