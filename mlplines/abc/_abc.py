@@ -531,8 +531,8 @@ class AbstractComponentHandler:
         SaveLoadHandler classes corresponding to the model passed; these
         classes are stored in the properties noted above.
 
-    save. Returns: _Picklable
-        Saves model with ComponentHandler wrapper.
+    save. Returns: None
+        Saves model and ComponentHandler wrapper.
 
     update_kwargs. Returns: None.
         Calls hyperparameter handler to update the models
