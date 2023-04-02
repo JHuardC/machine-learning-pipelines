@@ -184,8 +184,16 @@ class GensimSaveLoad(AbstractSaveLoadHandler):
             'Cannot use setstate or getstate on gensim models'
         )
     
-    def save(self, to: _PathLike, model: _Model) -> _PathLike:
-        raise NotImplementedError()
+    def save(self, to: _PathLike, model: _Model, **kwargs) -> _PathLike:
+        if isinstance(to, Path):
+            to = to.parent.joinpath(f'gensim_{model.__class__.__name__}')
+        else:
+            to = Path(to).absolute().parent.joinpath(
+                f'gensim_{model.__class__.__name__}'
+            )
+
+        model.save(to, **kwargs)
+        return to
     
-    def load(self, model: type[_Model], path: _PathLike) -> _Model:
-        raise NotImplementedError()
+    def load(self, model: type[_Model], path: _PathLike, **kwargs) -> _Model:
+        return model.load(path, **kwargs)
