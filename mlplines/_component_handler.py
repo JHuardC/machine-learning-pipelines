@@ -411,31 +411,32 @@ class ComponentHandler(AbstractComponentHandler):
                 self.__model,
                 state['model_state']
             )
-    
+
 
     def load_model(
         self,
-        path: _PathLike
+        path: _PathLike,
+        **kwargs
     ) -> None:
         """
         Loads a saved model state. Assumes model's module contains it's
-        own persistency functions.
+        own save/load functionality.
 
         Parameters
         ----------
         path: subclass of str or pathlib.Path.
-            path to file containing saved state.
-
-        reader: callable.
-            A function that can parse the save file's format to python
-            data types. pickle.load for a .pkl or .pickle file, for
-            example.
-        
-        mode: str.
-            Mode in which file should be opened. Accepts only 'r' or
-            'rb'.
+            path to file containing model's saved state.
         """
-        self.__model = self.saveload_handler.load(self.__model, path)
+        self.__model = self.saveload_handler.load(self.__model, path, **kwargs)
+
+
+    def save_model(
+        self,
+        to: _PathLike
+    ) -> _PathLike:
+
+
+    def save(self, to: _PathLike, **model_kwargs):
 
 
     def update_kwargs(
