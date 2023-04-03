@@ -410,6 +410,10 @@ class SaveLoadHandlerMixin(RootMixin):
 
     Abstract Methods
     ----------------
+    get_model_path. Returns: pathlib.Path
+        Generates a separate path name for the model to be saved to
+        using the save/load functionality recommended for the module.
+
     get_model_state. Returns: _Picklable
         Retrieves the model's state.
 
@@ -426,7 +430,7 @@ class SaveLoadHandlerMixin(RootMixin):
     Methods
     -------
     get_match_description. Returns: str.
-        maps to _check_model's method of the same name. Describes the
+        Maps to _check_model's method of the same name. Describes the
         conditions required for the SaveLoad Handler to be called.
 
     has_check_model. Returns: bool.
@@ -436,6 +440,10 @@ class SaveLoadHandlerMixin(RootMixin):
         Recursive class method. Returns correct handler class for the
         given model.
     """
+    @abstractmethod
+    def get_model_path(self, path: PathLike, model: _Model) -> Path:
+        pass
+
     @abstractmethod
     def get_model_state(
         self,
