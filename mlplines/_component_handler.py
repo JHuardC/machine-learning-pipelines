@@ -76,11 +76,11 @@ class ComponentHandler(AbstractComponentHandler):
     model: object.
         Stores the model used in a specific step by the pipeline. On 
         setting the model _set_handlers is called to set the values of 
-        implement_handler and hyperparameter_handler.
+        implement_handler, hyperparameter_handler, and saveload_handler.
 
     Class Methods
     -------------
-    load. Returns: _AbstractComponentHander.
+    load. Returns: ComponentHander.
         Loads a saved ComponentHandler state.
 
     Methods
@@ -88,8 +88,14 @@ class ComponentHandler(AbstractComponentHandler):
     apply. Returns: Iterable.
         Calls implement handler to process data X on trained model.
 
+    load_model. Returns: _Model
+        Loads a model's savestate using saveload_handler.
+
     save. Returns: _Picklable
         Saves model and ComponentHandler wrapper.
+
+    save_model. Returns: None.
+        Saves a model's state using saveload_handler.
 
     train. Returns: None.
         Calls implement handler to train the model on data X.
@@ -139,8 +145,7 @@ class ComponentHandler(AbstractComponentHandler):
         mode: str = 'r'
     ) -> _ComponentHandler:
         """
-        Loads a saved ComponentHandler state, supports model
-        persistency.
+        Loads a saved ComponentHandler state.
 
         Parameters
         ----------
@@ -166,7 +171,7 @@ class ComponentHandler(AbstractComponentHandler):
         model_state = state.pop('model_state')
 
         instance: ComponentHandler = cls.__new__(cls = cls)
-        instance.set_handler_state(state = state)
+        instance.__setstate__(state = state)
         instance.load_model(path = model_state)
 
 
@@ -353,7 +358,7 @@ class ComponentHandler(AbstractComponentHandler):
         raise AliasLookupError(error_msg)
     
 
-    def _get_handler_state(self) -> dict:
+    def get_handler_state(self) -> dict:
         """
         Gets the states for self and handler attributes, but not model's
         state.
@@ -376,14 +381,14 @@ class ComponentHandler(AbstractComponentHandler):
     
 
     def __getstate__(self) -> dict:
-        state = self._get_handler_state()
+        state = self.get_handler_state()
         state.update(
             model_state = self.saveload_handler.get_model_state(self.model)
         )
         return state
     
 
-    def set_handler_state(self, state: dict) -> None:
+    def _set_handler_state(self, state: dict) -> None:
         """
         Sets values for self and handler attributes, but not for the
         model.
@@ -432,11 +437,56 @@ class ComponentHandler(AbstractComponentHandler):
 
     def save_model(
         self,
-        to: _PathLike
-    ) -> _PathLike:
+        to: _PathLike,
+        **model_kwargs
+    ) -> None:
+        """
+        Saves model state.
+
+        Parameters
+        ----------
+        to: str or pathlib.Path
+            File location the model will be saved to.
+        """
+        self.saveload_handler.save(to, self.model, **model_kwargs)
 
 
-    def save(self, to: _PathLike, **model_kwargs):
+    def save(
+        self,
+        to: _PathLike,
+        writer: callable,
+        mode: str = 'r',
+        **model_kwargs
+    ) -> None:
+        """
+        Saves ComponentHandler and model's state. 
+
+        Parameters
+        ----------
+        to: str or pathlib.Path
+            File location the model will be saved to.
+
+        writer: callable.
+            A function that can parse python data types to the save
+            file's format. pickle.dump for a .pkl or .pickle file, for
+            example.
+        
+        mode: str.
+            Mode in which file should be opened. Accepts only 'r' or
+            'rb'.
+        """
+        if mode not in {'r', 'rb'}:
+            raise ValueError(
+                f"Incorrect mode argument passed: {mode}.\nMust be 'r' or 'rb'"
+            )
+        model_path = self.saveload_handler.get_model_path(to, self.model)
+        self.save_model(model_path, **model_kwargs)
+
+        with open(to, mode) as f:
+            writer(
+                self.get_handler_state().update(model_state = model_path),
+                f
+            )
 
 
     def update_kwargs(
