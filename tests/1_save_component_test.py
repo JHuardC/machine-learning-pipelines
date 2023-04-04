@@ -20,13 +20,22 @@ from gensim.models import TfidfModel, LdaModel
 
 from mlplines import ComponentHandler, ModellingPipeline
 from tutils import go_to_ancestor
+import pickle
 
 ### Constants
 DATA_PATH: Final[pl.Path] = go_to_ancestor(
     pl.Path().absolute()
 ).joinpath(
     'tests',
+    'test_data',
     'petitions_sample.pqt'
+)
+
+OUTPUT_Path: Final[pl.Path] = go_to_ancestor(
+    pl.Path().absolute()
+).joinpath(
+    'tests',
+    'test_outputs'
 )
 
 ### Functions
@@ -48,6 +57,7 @@ preprocess = partial(
 
 if __name__ == '__main__':
 
+    ### Load and Prep testing data
     corpora = read_parquet(DATA_PATH)
     corpora = corpora['full_text'].str.lower()
     corpora = corpora.apply(preprocess).tolist()
@@ -55,15 +65,16 @@ if __name__ == '__main__':
     corpus_dict = Dictionary(corpora)
     corpora = [corpus_dict.doc2bow(text) for text in corpora]
 
+    ### Set-up Pipeline and ComponentHandlers
     sequence = [
         dict(
             step_name = 'tfidf',
-            model = TfidfModel(),
+            model = TfidfModel,
             init_kwargs = dict(smartirs = 'ltc', id2word = corpus_dict)
         ),
         dict(
             step_name = 'latent_var_model',
-            model = LdaModel(),
+            model = LdaModel,
             init_kwargs = dict(
                 id2word = corpus_dict,
                 num_topics = 30,
@@ -77,4 +88,12 @@ if __name__ == '__main__':
 
     pipeline = ModellingPipeline(sequence = sequence)
 
+    ### Train models
     output = pipeline.train_apply_pipeline(X = corpora)
+
+    ### Save attempts
+    tfidf: ComponentHandler = pipeline.tfidf
+    tfidf.save(OUTPUT_Path.joinpath('test_1_tfidf.pkl'), pickle.dump, 'wb')
+
+    lda: ComponentHandler = pipeline.latent_var_model
+    lda.save(OUTPUT_Path.joinpath('test_1_lda.pkl'), pickle.dump, 'wb')
