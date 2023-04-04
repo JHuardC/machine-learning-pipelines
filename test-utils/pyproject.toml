@@ -1,0 +1,20 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+only-include = ["tutils",]
+
+[project]
+name = "test-utils"
+version = "0.0.1"
+authors = [
+  { name="JHuardC", email="joehuard2711@gmail.com" },
+]
+description = "Personal utility tools for current project."
+requires-python = ">=3.10.9"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+]
