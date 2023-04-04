@@ -29,7 +29,7 @@ def go_to_ancestor(path: pl.Path, ancestor: str = PROJECT_NAME) -> pl.Path:
     """Returns the path of an ancestor to the specified path.
     
     Parameters
-    ``````````
+    ----------
     path [pathlib.Path]
         Specified path to navigate.
 
@@ -37,7 +37,7 @@ def go_to_ancestor(path: pl.Path, ancestor: str = PROJECT_NAME) -> pl.Path:
         Name of directory part to navigate to.
         
     Returns
-    ```````
+    -------
     Ancestor path [pathlib.Path]
     """
     if isinstance(path, pl.Path):
