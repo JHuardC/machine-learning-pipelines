@@ -91,7 +91,7 @@ class ComponentHandler(AbstractComponentHandler):
     load_model. Returns: _Model
         Loads a model's savestate using saveload_handler.
 
-    save. Returns: _Picklable
+    save. Returns: None
         Saves model and ComponentHandler wrapper.
 
     save_model. Returns: None.
@@ -157,7 +157,7 @@ class ComponentHandler(AbstractComponentHandler):
             data types. pickle.load for a .pkl or .pickle file, for
             example.
         
-        mode: str.
+        mode: str. Default: 'r'.
             Mode in which file should be opened. Accepts only 'r' or
             'rb'.
         """
@@ -455,7 +455,7 @@ class ComponentHandler(AbstractComponentHandler):
         self,
         to: _PathLike,
         writer: callable,
-        mode: str = 'r',
+        mode: str = 'w',
         **model_kwargs
     ) -> None:
         """
@@ -471,13 +471,13 @@ class ComponentHandler(AbstractComponentHandler):
             file's format. pickle.dump for a .pkl or .pickle file, for
             example.
         
-        mode: str.
-            Mode in which file should be opened. Accepts only 'r' or
-            'rb'.
+        mode: str. Default: 'w'.
+            Mode in which file should be opened. Accepts only 'w' or
+            'wb'.
         """
-        if mode not in {'r', 'rb'}:
+        if mode not in {'w', 'wb'}:
             raise ValueError(
-                f"Incorrect mode argument passed: {mode}.\nMust be 'r' or 'rb'"
+                f"Incorrect mode argument passed: {mode}.\nMust be 'w' or 'wb'"
             )
         model_path = self.saveload_handler.get_model_path(to, self.model)
         self.save_model(model_path, **model_kwargs)
