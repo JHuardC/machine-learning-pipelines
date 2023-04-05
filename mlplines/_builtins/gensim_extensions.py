@@ -183,22 +183,23 @@ class GensimSaveLoad(AbstractSaveLoadHandler):
         raise NotImplementedError(
             'Cannot use setstate or getstate on gensim models'
         )
-    
-    def get_model_path(self, path: _PathLike, model: _Model) -> Path:
-        """
-        Generates a separate path name for the model to be saved to
-        using the save/load functionality recommended for the module.
-        """
-        if isinstance(path, Path):
-            path = path.parent.joinpath(f'gensim_{model.__class__.__name__}')
-        else:
-            path = Path(path).absolute().parent.joinpath(
-                f'gensim_{model.__class__.__name__}'
-            )
-        return path
 
+    def get_model_path(
+            self,
+            component_handler_path: _PathLike,
+            model: _Model,
+            path_suffix: str
+        ) -> Path:
+        if path_suffix == '':
+            path_suffix = '.npm' # default save type for gensim models
+        
+        return super().get_model_path(
+            component_handler_path = component_handler_path,
+            model = model,
+            path_suffix = path_suffix
+        )
     
-    def save(self, to: Path, model: _Model, **kwargs) -> None:
+    def save(self, to: Path, model: _Model, **kwargs) -> None:        
         model.save(to, **kwargs)
         return to
     
