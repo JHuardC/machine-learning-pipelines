@@ -41,7 +41,7 @@ def go_to_ancestor(path: pl.Path, ancestor: str = PROJECT_NAME) -> pl.Path:
     Ancestor path [pathlib.Path]
     """
     if isinstance(path, pl.Path):
-        path_parts = path.parts
+        path_parts = path.absolute().parts
     else:
         raise TypeError(_get_path_TypeError_text(path))
         
