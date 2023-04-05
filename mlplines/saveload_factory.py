@@ -15,6 +15,7 @@ from pathlib import Path
 from mlplines.abc import BaseHandler, SaveLoadHandlerMixin
 
 ### Types
+_Model = TypeVar('_Model')
 _PathLike = TypeVar('_PathLike', str, Path)
 
 ### Classes
@@ -48,6 +49,10 @@ class AbstractSaveLoadHandler(BaseHandler, SaveLoadHandlerMixin):
     
     Methods
     -------
+    get_model_path. Returns: pathlib.Path
+        Generates a separate path name for the model to be saved to
+        using the save/load functionality recommended for the module.
+    
     get_match_description. Returns: str.
         maps to _check_model's method of the same name. Describes the 
         conditions required for the Hyperparameter/Implement Handler 
@@ -60,4 +65,22 @@ class AbstractSaveLoadHandler(BaseHandler, SaveLoadHandlerMixin):
         Recursive class method. Returns correct handler class for the 
         given model.
     """
-    pass
+    def get_model_path(
+            self,
+            component_handler_path: _PathLike,
+            model: _Model,
+            path_suffix: str
+        ) -> Path:
+        """
+        Generates a separate path name for the model to be saved to
+        using the save/load functionality recommended for the module.
+        """
+        chp = component_handler_path
+
+        model_file_name = f'gensim_{model.__class__.__name__}{path_suffix}'
+        if isinstance(chp, Path):
+            model_path = chp.parent.joinpath(model_file_name)
+        else:
+            model_path = Path(chp).absolute().parent.joinpath(model_file_name)
+
+        return model_path
