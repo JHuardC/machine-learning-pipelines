@@ -456,10 +456,14 @@ class ComponentHandler(AbstractComponentHandler):
         to: _PathLike,
         writer: callable,
         mode: str = 'w',
-        **model_kwargs
+        model_path_suffix: str = '',
+        **model_save_kwargs
     ) -> None:
         """
-        Saves ComponentHandler and model's state. 
+        Saves ComponentHandler and model's state.
+        
+        The model is saved to a seperate file/collection of files from
+        the rest of the ComponentHandler.
 
         Parameters
         ----------
@@ -474,13 +478,28 @@ class ComponentHandler(AbstractComponentHandler):
         mode: str. Default: 'w'.
             Mode in which file should be opened. Accepts only 'w' or
             'wb'.
+
+        model_path_suffix: str. Default: ''.
+            Optional argument dependending on the model's save
+            functionality. In some instances, a package may infer save
+            type by the destination filename's suffix.
+
+        Kwargs
+        ------
+        Any kwargs to be passed to the models in-house save
+        functionality.
         """
         if mode not in {'w', 'wb'}:
             raise ValueError(
                 f"Incorrect mode argument passed: {mode}.\nMust be 'w' or 'wb'"
             )
-        model_path = self.saveload_handler.get_model_path(to, self.model)
-        self.save_model(model_path, **model_kwargs)
+
+        model_path = self.saveload_handler.get_model_path(
+            to,
+            self.model,
+            model_path_suffix
+        )
+        self.save_model(model_path, **model_save_kwargs)
 
         with open(to, mode) as f:
             writer(
