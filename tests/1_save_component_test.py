@@ -23,17 +23,13 @@ from tutils import go_to_ancestor
 import pickle
 
 ### Constants
-DATA_PATH: Final[pl.Path] = go_to_ancestor(
-    pl.Path().absolute()
-).joinpath(
+DATA_PATH: Final[pl.Path] = go_to_ancestor(pl.Path()).joinpath(
     'tests',
     'test_data',
     'petitions_sample.pqt'
 )
 
-OUTPUT_Path: Final[pl.Path] = go_to_ancestor(
-    pl.Path().absolute()
-).joinpath(
+OUTPUT_Path: Final[pl.Path] = go_to_ancestor(pl.Path()).joinpath(
     'tests',
     'test_outputs'
 )
