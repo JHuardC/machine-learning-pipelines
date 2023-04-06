@@ -199,7 +199,7 @@ class GensimSaveLoad(AbstractSaveLoadHandler):
             path_suffix = path_suffix
         )
 
-    def save(self, to: Path, model: _Model, **kwargs) -> None:
+    def save(self, to: _PathLike, model: _Model, **kwargs) -> None:
         model.save(str(to), **kwargs)
         return None
 
