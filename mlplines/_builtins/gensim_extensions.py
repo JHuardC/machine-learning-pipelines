@@ -204,4 +204,4 @@ class GensimSaveLoad(AbstractSaveLoadHandler):
         return None
 
     def load(self, model: type[_Model], path: _PathLike, **kwargs) -> _Model:
-        return model.load(path, **kwargs)
+        return model.load(str(path), **kwargs)
