@@ -210,19 +210,10 @@ class AbstractImplementHandler(BaseHandler, ImplementHandlerMixin):
     
     def apply(
         self,
-        pipeline: Union[_ModellingPipeline, None],
         model: _Model,
         X: Iterable
     ) -> Iterable:
-
-        output = self._apply(model = model, X = X)
-
-        if pipeline != None:
-            self._update_pipeline_env(
-                pipeline = pipeline, model = model
-            )
-
-        return output
+        return self._apply(model = model, X = X)
 
 
     def train_apply(
