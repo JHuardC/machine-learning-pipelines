@@ -17,7 +17,7 @@ DATA_PATH: Final[Path] = go_to_ancestor(Path()).joinpath(
     'petitions_sample.pqt'
 )
 
-OUTPUT_Path: Final[Path] = go_to_ancestor(Path()).joinpath(
+OUTPUT_PATH: Final[Path] = go_to_ancestor(Path()).joinpath(
     'tests',
     'test_outputs'
 )

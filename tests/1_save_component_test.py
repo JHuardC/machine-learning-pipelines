@@ -19,20 +19,8 @@ from gensim.corpora import Dictionary
 from gensim.models import TfidfModel, LdaModel
 
 from mlplines import ComponentHandler, ModellingPipeline
-from tutils import go_to_ancestor
+from tutils import DATA_PATH, OUTPUT_PATH
 import pickle
-
-### Constants
-DATA_PATH: Final[pl.Path] = go_to_ancestor(pl.Path()).joinpath(
-    'tests',
-    'test_data',
-    'petitions_sample.pqt'
-)
-
-OUTPUT_Path: Final[pl.Path] = go_to_ancestor(pl.Path()).joinpath(
-    'tests',
-    'test_outputs'
-)
 
 ### Functions
 preprocess = partial(
@@ -89,7 +77,7 @@ if __name__ == '__main__':
 
     ### Save attempts
     tfidf: ComponentHandler = pipeline.tfidf
-    tfidf.save(OUTPUT_Path.joinpath('test_1_tfidf.pkl'), pickle.dump, 'wb')
+    tfidf.save(OUTPUT_PATH.joinpath('test_1_tfidf.pkl'), pickle.dump, 'wb')
 
     lda: ComponentHandler = pipeline.latent_var_model
-    lda.save(OUTPUT_Path.joinpath('test_1_lda.pkl'), pickle.dump, 'wb')
+    lda.save(OUTPUT_PATH.joinpath('test_1_lda.pkl'), pickle.dump, 'wb')
