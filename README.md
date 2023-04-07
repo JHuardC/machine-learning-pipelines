@@ -54,11 +54,12 @@ A secondary 'package' is included in this repository, named test-utils. To utili
 
 ## Usage Example
 
-Example code below comes from [0_import_test.py](tests/0_import_test.py)
+Example code below comes from [0_import_test.py](tests/0_import_test.py). The code will show how to created a `ModellingPipeline` instance and use it to train components on data.
 
 Part 1 - imports and preprocessing test data.
 
 ```python
+from mlplines import ModellingPipeline # key class from machine-learning-pipelines
 
 import logging
 from tutils import DATA_PATH
@@ -75,7 +76,6 @@ from gensim.parsing.preprocessing import\
 
 from gensim.corpora import Dictionary
 from gensim.models import TfidfModel, LdaModel
-from mlplines import ModellingPipeline, ComponentHandler
 
 
 ### Set up logging
