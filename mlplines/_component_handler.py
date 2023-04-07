@@ -170,9 +170,11 @@ class ComponentHandler(AbstractComponentHandler):
         
         model_state = state.pop('model_state')
 
-        instance: ComponentHandler = cls.__new__(cls = cls)
+        instance: ComponentHandler = cls.__new__(cls)
         instance.__setstate__(state = state)
         instance.load_model(path = model_state)
+
+        return instance
 
 
     def __init__(
@@ -393,25 +395,26 @@ class ComponentHandler(AbstractComponentHandler):
         Sets values for self and handler attributes, but not for the
         model.
         """
-        self.step_name = state.get('step_name', self.step_name)
-        self.ext_lookup = state.get('ext_lookup', self.ext_lookup)
-        
         model: type[_Model] = getattr(
-                import_module(state['model_module']),
-                state['model_class']
+            import_module(state.pop('model_module')),
+            state.pop('model_class')
         )
+        hyper_state = state.pop('hyper_state')
+        implement_state = state.pop('implement_state')
 
+        self.__dict__.update(state)
         self._set_handlers(model)
-        self.hyperparameter_handler.__setstate__(state = state['hyper_state'])
-        self.implement_handler.__setstate__(state = state['implement_state'])
-
+        self.hyperparameter_handler.__setstate__(state = hyper_state)
+        self.implement_handler.__setstate__(state = implement_state)
         self.__model = model
 
 
     def __setstate__(self, state: dict) -> None:
+        model_state = state.pop('model_state', False)
+
         self._set_handler_state(state = state)
 
-        if 'model_state' in state:
+        if model_state:
             self.__model = self.saveload_handler.set_model_state(
                 self.__model,
                 state['model_state']
@@ -542,15 +545,12 @@ class ComponentHandler(AbstractComponentHandler):
 
     def apply(
         self,
-        X: Iterable,
-        pipeline: Union[ModellingPipeline, None] = None
+        X: Iterable
     ) -> Iterable:
         """
         Applies the trained model to the data.
         """
-        return self.__implement_handler.apply(
-            pipeline = pipeline, model = self.model, X = X
-        )
+        return self.__implement_handler.apply(model = self.model, X = X)
 
 
     def train_apply(
@@ -563,7 +563,7 @@ class ComponentHandler(AbstractComponentHandler):
         Trains the model and applies it to the training data.
         """
         output, self.__model = self.__implement_handler.train_apply(
-            pipeline = pipeline, model = self.model, X = X
+            pipeline = pipeline, model = self.model, X = X, y = y
         )
 
         return output
