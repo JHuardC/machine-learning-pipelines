@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
-""" Utitity classes and functions test scripts.
+""" 
+Utility functions for setting relative Paths to the project root.
 
 Created on: Sat 1 Apr 2023
 
