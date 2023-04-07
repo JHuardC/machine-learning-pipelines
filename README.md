@@ -1,8 +1,8 @@
 # Machine Learning Pipelines
 
-The field of machine learning is huge, with novel techniques to modelling data being developed all the time. The pace at which advances are made, makes it impossible for any one Python Package to create objects for all techniques, as such the machine learning programmer will often find they have to combine tools from separate packages. Combining tools from different packages into one pipeline can slow development time, as syntaxes, inputs and outputs are not always consistent accross packages.
+The field of machine learning is huge, with novel techniques to modelling data being developed all the time. The pace at which advances are made makes it impossible for any one Python Package to create objects for all techniques, as such the machine learning programmer will often find they have to combine tools from separate packages. Combining tools from different packages into one pipeline can slow development time, as syntaxes, inputs and outputs are not always consistent accross packages.
 
-The Machine Learning Pipelines (MLP) repo has been developed to help coordinate any Machine Learning process where modelling and tranformation tools come from separate packages. MLP is based on the observatiom that applying machine learning techniques/tools to data tends to consist of a common set of processes:
+The Machine Learning Pipelines (MLP) repo has been developed to help coordinate any Machine Learning process where modelling and transformation tools come from separate packages. MLP is based on the observatiom that applying machine learning techniques/tools to data tends to consist of a common set of processes:
 
 1. **Saving** a model/transformer and it's outputs.
 2. **Loading** a trained model/transformer state for reuse.
@@ -15,6 +15,7 @@ The Machine Learning Pipelines (MLP) repo has been developed to help coordinate 
 
 - [Local Build](#Local-Build)
 - [Usage Example](#Usage-Example)
+- [Conceptual Overview of machine-learning-pipelines](#Conceptual-overview)
 - [Extending pipelines to handle new packages](#Extending-pipelines-to-handle-new-packages)
 - [The ModellingPipeline environment](#The-ModellingPipeline-environment)
 
@@ -42,96 +43,89 @@ Or:
   pip install -e \path\to\machine-learning-pipelines
 ```
 
+A secondary 'package' is included in this repository, named test-utils. To utilize the testing scripts it is recommended to perform an editable install on test-utils too:
+
+```command
+  pip install -e \path\to\machine-learning-pipelines\test-utils
+```
+
 [Back to top](#Machine-Learning-Pipelines)
 
 
 ## Usage Example
 
-The `ModellingPipeline` class is the top level class used to coordinate the steps of a modelling process. To maximize flexibility the pipelines are designed to be mutable, allowing a user or another class to alter the pipeline; also, the `ModellingPipeline` contains methods to train and/or apply an individual modelling step, or a specified segment of the pipeline, or the entire pipeline.
+Example code below comes from [0_import_test.py](tests/0_import_test.py)
 
-Figure 1 represents a modelling task with N steps:
+Part 1 - imports and preprocessing test data.
 
-![Figure 1](docs/Pipeline-Process-Flow.PNG)
-
-The `ModellingPipeline` contains the methods for each processing step in a `ComponentHandler` class; each component in Figure 1 is a `ComponentHandler` object (Figure 2 shows this aggregation). 
-
-![Figure 2](docs/Modelling%20Pipeline%20Class%20Diagram.PNG)
-
-Part 1:
 ```python
-# UTC-8 Encoding
+
+import logging
+from tutils import DATA_PATH
+from functools import partial
+from pandas import read_parquet
+from gensim.parsing.preprocessing import\
+    preprocess_string,\
+    strip_tags,\
+    strip_short,\
+    strip_punctuation,\
+    strip_multiple_whitespaces,\
+    stem_text,\
+    remove_stopwords
+
+from gensim.corpora import Dictionary
+from gensim.models import TfidfModel, LdaModel
+from mlplines import ModellingPipeline, ComponentHandler
+
 
 ### Set up logging
-import logging
 logging.basicConfig(
-    format='%(asctime)s : %(levelname)s : %(message)s', level=logging.INFO
+    format='%(asctime)s : %(levelname)s : %(message)s',
+    level=logging.INFO
 )
 
-### Get Data
-import pathlib as lib
-from topic_modelling_pipelines.utils import go_to_ancestor
-import pandas as pd
 
-path = go_to_ancestor(lib.Path().absolute(), 'MC_NLP')
-petitions = pd.read_csv(path.joinpath('data', 'pet_sample_1pc_42rs.csv'))
-
-### Prep Data - Fill nulls and combine text sections to create full_text
-petitions.fillna(
-    {'action': '', 'background': '', 'additional_details': ''}, inplace = True
+### Functions
+preprocess = partial(
+    preprocess_string,
+    filters = [
+        strip_multiple_whitespaces,
+        strip_tags,
+        strip_punctuation,
+        stem_text,
+        strip_short,
+        remove_stopwords
+    ]
 )
 
-petitions['full_text'] = petitions['action'].str.cat(
-    petitions[['background', 'additional_details']], sep = ' '
-)
+### Load and Prep testing data
+corpora = read_parquet(DATA_PATH)
+corpora = corpora['full_text'].str.lower()
+corpora = corpora.apply(preprocess).tolist()
 
-### text preprocessing setup
-import spacy
-from topic_modelling_pipelines.utils import ChainerCleanList
-from topic_modelling_pipelines.preprocessing.cleaning_functions import\
-    expand_contractions,\
-    standardize_whitespace
-from topic_modelling_pipelines.preprocessing.gensim_extensions import\
-    SpacyGensimBOW
-
-
-# ChainerCleanList - callable object that sequentially applies functions
-preproc = ChainerCleanList(
-    standardize_whitespace,
-    expand_contractions
-)
-nlp = spacy.load('en_core_web_sm') # pre-trained pipeline
-preprocessor = SpacyGensimBOW(
-    nlp, 
-    preproc_function = preproc, 
-    stop_words = True, 
-    lemmatize = True
-)
+corpus_dict = Dictionary(corpora)
+corpora = [corpus_dict.doc2bow(text) for text in corpora]
 
 ```
 
 Part 2 - Initializing ```ModellingPipeline``` instance:
 
 ```Python
-### Import gensim models
-from gensim.models.tfidfmodel import TfidfModel
-from gensim.models import LdaModel
-
-### ModellingPipeline init args set-up
-from topic_modelling_pipelines.pipelines import\
-    ModellingPipeline, ComponentHandler
-
 sequence = [
-    ComponentHandler('preprocessing', preprocessor),
     dict(
         step_name = 'tfidf',
         model = TfidfModel,
-        init_kwargs = dict(smartirs = 'ltc')
+        init_kwargs = dict(
+            smartirs = 'ltc',
+            id2word = corpus_dict
+        )
     ),
     dict(
         step_name = 'latent_var_model',
         model = LdaModel,
         init_kwargs = dict(
-            num_topics = 30, 
+            id2word = corpus_dict,
+            num_topics = 30,
             chunksize = 512,
             minimum_probability = 0,
             update_every = 1,
@@ -145,53 +139,13 @@ pipeline = ModellingPipeline(sequence = sequence)
 
 The order in which the preprocessor and gensim models were placed in the sequence variable represents the order in which these objects will be applied to the data in the pipeline.
 
-The sequence variable shows the two alternate ways a processing step can be passed to `ModellingPipeline`: For the preprocessing step,  preprocessor was wrapped in a `ComponentHandler` before being passed to `ModellingPipeline`; for tfidf and latent_var_model steps, the gensim models are passed within a dictionary.
-
-The sequence could have been passed in an alternate form, by not initializing `SpacyGensimBOW` and passing it to a `ComponentHandler`:
-
-```Python
-### ModellingPipeline init args set-up
-from topic_modelling_pipelines.pipelines import ModellingPipeline
-
-sequence = [
-    dict(
-        step_name = 'tfidf',
-        model = SpacyGensimBOW
-        init_kwargs = dict(
-            spacy_model = nlp, 
-            preproc_function = preproc, 
-            stop_words = True, 
-            lemmatize = True
-        )
-    ),
-    dict(
-        step_name = 'tfidf',
-        model = TfidfModel,
-        init_kwargs = dict(smartirs = 'ltc')
-    ),
-    dict(
-        step_name = 'latent_var_model',
-        model = LdaModel,
-        init_kwargs = dict(
-            num_topics = 30, 
-            chunksize = 512,
-            minimum_probability = 0,
-            update_every = 1,
-            passes = 5
-        )
-    )
-]
-
-pipeline = ModellingPipeline(sequence = sequence)
-```
-
 Note how this alternate form did not require `ComponentHandler` to be imported.
 
 Part 3 - Using the pipeline on full text of petitions sampled:
 
 ```Python
 ### Train and extract topic weights
-outputs = pipeline.train_apply_pipeline(petitions['full_text'])
+outputs = pipeline.train_apply_pipeline(corpora)
 
 ```
 
@@ -199,23 +153,32 @@ outputs = pipeline.train_apply_pipeline(petitions['full_text'])
 
 [Back to Top](#Machine-Learning-Pipelines)
 
-Currently, the `pipelines` sub-package has a small number of built in concrete Handlers for packages used in topic modelling:
+## Conceptual Overview
 
-  - Classes belonging to the preprocessing sub-package
-  - Gensim classes for vectorization and topic modelling
+The `ModellingPipeline` class is the top level class used to coordinate the steps of a modelling process. To maximize flexibility the pipelines are designed to be mutable, allowing a user or another class to alter the pipeline; also, the `ModellingPipeline` contains methods to train and/or apply an individual modelling step, or a specified segment of the pipeline, or the entire pipeline.
 
-## Extending `pipelines` to handle new packages
+Figure 1 represents a modelling task with N steps:
 
-As mentioned above, each component in Figure 1 is a `ComponentHandler` object. The `ComponentHandler` class provides a standardized set of methods for `ModellingPipeline` to call in a processing step. There are four key `ComponentHandler` methods that a `ModellingPipeline` object calls:
+![Figure 1](docs/Pipeline-Process-Flow.PNG)
 
-  1. update_kwargs()
-  2. train()
-  3. apply()
-  4. train_apply()
+The `ModellingPipeline` contains the methods for each processing step in a `ComponentHandler` class; each component in Figure 1 is a `ComponentHandler` object (Figure 2 shows this aggregation). 
+
+![Figure 2](docs/Modelling%20Pipeline%20Class%20Diagram.PNG)
+
+The `ComponentHandler` class provides a standardized set of methods for `ModellingPipeline` to call in a processing step. There are six key `ComponentHandler` methods that a `ModellingPipeline` object calls:
+
+  1. `update_kwargs()`
+  2. `train()`
+  3. `apply()`
+  4. `train_apply()`
+  5. `save()` (or `__getstate__()`)
+  6. `load()` (or `__setstate__()`)
 
 `ComponentHandler` composites two further classes: When train, apply, or train_apply is called an 'Implement Handler' object will have it's corresponding methods called by `ComponentHandler`; and when update_kwargs is called a 'Hyperparameter Handler' object will be called.
 
 ![Figure 3](docs/Component%20Handler%20Class%20Diagram.PNG)
+
+## Extending `pipelines` to handle new packages
 
 Any object from any package **must** have unique hyperparameter and implement handler classes. `ComponentHandler` is designed to automatically load the corresponding Hyperparameter and Implement Handler classes for a given object.
 
