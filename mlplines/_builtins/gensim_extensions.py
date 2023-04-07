@@ -8,23 +8,26 @@ Created on: Wed 01 Feb 2023
 """
 ### Imports
 from typing import Union, TypeVar
+from pathlib import Path
 from mlplines.abc import AbstractModellingPipeline
+from mlplines.saveload_factory import AbstractSaveLoadHandler
 from mlplines.hyper_factory import TrainOnInitializationHandler
 from mlplines.implement_factory import\
     UnsupervisedTrainOnInitImplementer, data_model
 
 from mlplines.check_factory import SubclassOfKey
-from collections.abc import Iterable
+from collections.abc import Iterable, Mapping
 from collections import OrderedDict
 from gensim.interfaces import TransformationABC
 from gensim.models.basemodel import BaseTopicModel
 
-##########
 ### Typing
 _Model = TypeVar('_Model')
 ModellingPipeline = AbstractModellingPipeline
 _GensimTransform = TransformationABC
 _GensimTopicModel = BaseTopicModel
+_PathLike = TypeVar('_PathLike', str, Path)
+_Picklable = TypeVar('_Picklable')
 
 ### Gensim check model and handlers
 class SubclassOfGensim(SubclassOfKey):
@@ -62,7 +65,7 @@ class GensimNotUpdatable(SubclassOfGensim):
             method = 'update', 
             parents = super().get_key()
         )
-    
+
     @classmethod
     def get_match_description(cls, realization_class: type) -> str:
         method_modifier, method, parents = tuple(cls.get_key().values())
@@ -79,7 +82,7 @@ class GensimNotUpdatable(SubclassOfGensim):
             " in the specification class"
         ]
         return ''.join(description)
-    
+
 
     @classmethod
     def check_model(cls, model: _Model) -> bool:
@@ -98,7 +101,7 @@ class ImplementGensimTransformer(UnsupervisedTrainOnInitImplementer):
     @property
     def data_kwarg(self) -> str:
         return 'corpus'
-    
+
     def _train_without_pipeline_access(
         self,
         model: _GensimTransform,
@@ -112,6 +115,12 @@ class ImplementGensimTransformer(UnsupervisedTrainOnInitImplementer):
     def _apply(self, model: _GensimTransform, X: Iterable) -> Iterable:
         return model[X]
 
+    def __getstate__(self) -> dict:
+        return dict()
+
+    def __setstate__(self, state: dict) -> None:
+        pass
+
 
 class GensimUpdatable(GensimNotUpdatable):
 
@@ -123,7 +132,7 @@ class GensimUpdatable(GensimNotUpdatable):
     ]:
         alias_key = super().get_key()
         alias_key['method_modifier'] = ''
-        
+
         return alias_key
 
     @classmethod
@@ -142,7 +151,7 @@ class ImplementGensimTopic(UnsupervisedTrainOnInitImplementer):
     @property
     def data_kwarg(self) -> str:
         return 'corpus'
-    
+
     def _train_without_pipeline_access(
         self,
         model: _GensimTopicModel,
@@ -151,7 +160,48 @@ class ImplementGensimTopic(UnsupervisedTrainOnInitImplementer):
     ) -> data_model:
         model.update(X)
         return data_model(None, model)
-            
-    
+
     def _apply(self, model: _GensimTopicModel, X: Iterable) -> Iterable:
         return model[X]
+
+    def __getstate__(self) -> dict:
+        return dict()
+
+    def __setstate__(self, state: dict) -> None:
+        pass
+
+
+class GensimSaveLoad(AbstractSaveLoadHandler):
+    __check_model = SubclassOfGensim
+
+    def get_model_state(self, model: _Model) -> _Picklable:
+        raise NotImplementedError(
+            'Cannot use setstate or getstate on gensim models'
+        )
+
+    def set_model_state(self, model: type[_Model], state: Mapping) -> _Model:
+        raise NotImplementedError(
+            'Cannot use setstate or getstate on gensim models'
+        )
+
+    def get_model_path(
+            self,
+            component_handler_path: _PathLike,
+            model: _Model,
+            path_suffix: str
+        ) -> Path:
+        if path_suffix == '':
+            path_suffix = '.npm' # default save type for gensim models
+
+        return super().get_model_path(
+            component_handler_path = component_handler_path,
+            model = model,
+            path_suffix = path_suffix
+        )
+
+    def save(self, to: _PathLike, model: _Model, **kwargs) -> None:
+        model.save(str(to), **kwargs)
+        return None
+
+    def load(self, model: type[_Model], path: _PathLike, **kwargs) -> _Model:
+        return model.load(str(path), **kwargs)

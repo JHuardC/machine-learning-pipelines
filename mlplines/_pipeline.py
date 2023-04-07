@@ -329,13 +329,14 @@ class ModellingPipeline(AbstractModellingPipeline):
         component_idx: int,
         component: ComponentHandler,
         X: Iterable,
-        y: Union[Iterable, None] = None
+        y: Union[Iterable, None] = None,
+        **updates
     ) -> None:
         """
         Trains model and updates pipeline's trained_threshold.
         """
         if component_idx >= self.update_threshold:
-            self._update_component(component_idx, component)
+            self._update_component(component_idx, component, **updates)
 
         if component_idx > self.trained_threshold:
 
@@ -388,13 +389,10 @@ class ModellingPipeline(AbstractModellingPipeline):
         component_idx: int,
         component: ComponentHandler,
         X: Iterable,
-        y: Union[Iterable, None] = None
+        y: Union[Iterable, None] = None,
+        **updates
     ) -> Iterable:
-
-        if component_idx > self.trained_threshold:
-            return component.apply(pipeline = self, X = X)
-        else:
-            return component.apply(X = X)
+        return component.apply(X = X)
 
 
     def apply_component(
@@ -424,10 +422,11 @@ class ModellingPipeline(AbstractModellingPipeline):
         component_idx: int,
         component: ComponentHandler,
         X: Iterable,
-        y: Union[Iterable, None] = None
+        y: Union[Iterable, None] = None,
+        **updates
     ) -> Iterable:
         if component_idx >= self.update_threshold:
-            self._update_component(component_idx, component)
+            self._update_component(component_idx, component, **updates)
 
         if component_idx > self.trained_threshold:
             return component.train_apply(pipeline = self, X = X, y = y)
@@ -516,8 +515,7 @@ class ModellingPipeline(AbstractModellingPipeline):
         y: Union[Iterable, None] = None
     ) -> Union[Iterable, None]:
         """
-        Call an internal method to apply to a specific model. Always 
-        updates hyperparameters.
+        Call an internal method to apply to a specific model.
 
         Parameters
         ----------
@@ -543,8 +541,7 @@ class ModellingPipeline(AbstractModellingPipeline):
             Optional argument, target values for supervised learning 
             models.
         """
-        self._update_component(component_idx, component, **updates)
-        return method(component_idx, component, X, y)
+        return method(component_idx, component, X, y, **updates)
 
 
     def _use_partial_pipeline(

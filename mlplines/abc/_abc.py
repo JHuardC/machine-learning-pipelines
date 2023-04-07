@@ -15,8 +15,9 @@ Created on: Thu 01 Sep 2022
 ### Imports
 from abc import abstractmethod, ABC
 from typing import TypeVar, Literal, Union, ClassVar
-from collections.abc import Iterable
+from collections.abc import Iterable, Mapping
 from itertools import chain, repeat
+from pathlib import Path
 from mlplines._special_entities import UniqueList
 
 ######################
@@ -36,21 +37,25 @@ _ModelCriteria = TypeVar('_ModelCriteria')
 _CheckModel = TypeVar('_CheckModel', bound = 'AbstractCheckModel')
 _RootHandler = TypeVar('_RootHandler', bound = 'RootMixin')
 
+_Picklable = TypeVar('_Picklable')
+
+PathLike = TypeVar('PathLike', Path, str)
+
 ######################
 ### Abstract check model class
 class AbstractCheckModel:
     """
-    Provides check_model method to Hyperparameter Handler and Implement 
+    Provides check_model method to Hyperparameter Handler and Implement
     Handler classes.
 
-    Every Hyperparameter/Implement Handler class should contain a child 
-    of AbstractCheckModel as a class attribute to check whether the 
-    handler class is the correct class to use with the passed model.
+    Every Hyperparameter/Implement/SaveLoad Handler class should contain
+    a child of AbstractCheckModel as a class attribute to check whether
+    the handler class is the correct class to use with the passed model.
 
     Abstract Methods
     ----------------
     get_key. Returns: _ModelCriteria (criteria to match a model.)
-        check_model classmethod will check a model against the criteria 
+        check_model classmethod will check a model against the criteria
         returned by this method.
     
     get_match_description. Returns: str.
@@ -80,8 +85,8 @@ class AbstractCheckModel:
         Parameters
         ----------
         realization_cls: type[_RootHandler].
-            The Hyperparameter/Implement handler class that is calling
-            this method.
+            The Hyperparameter/Implement/SaveLoad handler class that is
+            calling this method.
         """
         pass
     
@@ -100,7 +105,7 @@ class AbstractCheckModel:
 
         Returns
         -------
-        bool: True if the Hyperparameter/Implement handler is the 
+        bool: True if the Hyperparameter/Implement/SaveLoad handler is the 
         correct Handler class to the corresponding component model.
         """
         pass
@@ -131,11 +136,12 @@ class CheckModelTrue(AbstractCheckModel):
 ### Mixin containing the methods used to search for correct model handlers
 class RootMixin:
     """
-    Adds methods to search for correct Hyperparameter/Implement handlers
+    Adds methods to search for correct Hyperparameter/Implement/SaveLoad
+    handlers.
 
-    The correct Hyperparameter/Implement Handlers for a given model are 
-    found by tracing through the inheritance tree of a Root Handler 
-    mixin class.
+    The correct Hyperparameter/Implement/SaveLoad Handlers for a given
+    model are  found by tracing through the inheritance tree of a Root
+    Handler mixin class.
 
     Required Class Attributes
     -------------------------
@@ -143,15 +149,15 @@ class RootMixin:
         Class Attribute. Contains the methods for checking if this class
         is the correct handler class for the passed model.
 
-    Methods
-    -------
+    Class Methods
+    -------------
     get_match_description. Returns: str.
-        maps to __check_model's method of the same name. Describes the 
-        conditions required for the Hyperparameter/Implement Handler 
-        to be returned.
+        maps to __check_model's method of the same name. Describes the
+        conditions required for the Hyperparameter/Implement/SaveLoad
+        Handler to be returned.
 
     match_cls_progeny. Returns: Iterable containing class or a subclass.
-        Recursive class method. Returns correct handler class for the 
+        Recursive class method. Returns correct handler class for the
         given model.
     """
     __check_model: ClassVar[type[AbstractCheckModel]]
@@ -225,7 +231,7 @@ class RootMixin:
 ### Hyperparameter and Implement Handlers
 class BaseHandler:
     """
-    Provides shared step_name property and init method for all Handler 
+    Provides shared step_name property and init method for all Handler
     classes
     """
     @property
@@ -250,15 +256,20 @@ class HyperparameterHandlerMixin(RootMixin):
     Abstract Methods
     ----------------
     __call__:
-        An initialized subclass will be called as a function to update 
+        An initialized subclass will be called as a function to update
         a models' hyperparameters.
+
+    __getstate__. Returns: dict.
+        Gets key instance attributes.
+    
+    __setstate__. Returns: None.
+        Sets key instance attributes.
 
     Methods
     -------
     get_match_description. Returns: str.
-        maps to _check_model's method of the same name. Describes the 
-        conditions required for the Hyperparameter/Implement Handler 
-        to be called
+        maps to _check_model's method of the same name. Describes the
+        conditions required for the Hyperparameter Handler to be called.
 
     has_check_model. Returns: bool.
         Checks whether this class has a _check_model class attribute.
@@ -267,6 +278,14 @@ class HyperparameterHandlerMixin(RootMixin):
         Recursive class method. Returns correct handler class for the 
         given model.
     """
+    @abstractmethod
+    def __getstate__(self) -> dict:
+        pass
+
+    @abstractmethod
+    def __setstate__(self, state: dict) -> None:
+        pass
+
     @abstractmethod
     def __call__(self, model: _Model) -> _Model:
         pass
@@ -309,20 +328,33 @@ class ImplementHandlerMixin(RootMixin):
     train_apply. Returns: Iterable.
         Trains and processes data X.
 
+    __getstate__. Returns: dict.
+        Gets key instance attributes.
+    
+    __setstate__. Returns: None.
+        Sets key instance attributes.
+
     Methods
     -------
     get_match_description. Returns: str.
-        maps to _check_model's method of the same name. Describes the 
-        conditions required for the Hyperparameter/Implement Handler 
-        to be called
+        maps to _check_model's method of the same name. Describes the
+        conditions required for the Implement Handler to be called
 
     has_check_model. Returns: bool.
         Checks whether this class has a _check_model class attribute.
 
     match_cls_progeny. Returns: Iterable containing class or a subclass.
-        Recursive class method. Returns correct handler class for the 
+        Recursive class method. Returns correct handler class for the
         given model.
     """
+    @abstractmethod
+    def __getstate__(self) -> dict:
+        pass
+
+    @abstractmethod
+    def __setstate__(self, state: dict) -> None:
+        pass
+
     @abstractmethod
     def train(
         self,
@@ -364,9 +396,109 @@ class _ImplementHandler(ABC, ImplementHandlerMixin):
     ) -> bool:
         return {BaseHandler, ImplementHandlerMixin}.issubset(set(C.mro()))
 
+
+### Save Load Handler
+class SaveLoadHandlerMixin(RootMixin):
+    """
+    Adds key methods for SaveLoad handlers.
+
+    Required Class Attributes
+    -------------------------
+    __check_model: Concrete subclass of AbstractCheckModel.
+        Class Attribute. Contains the methods for checking if this class
+        is the correct handler class for the passed model.
+
+    Abstract Methods
+    ----------------
+    get_model_path. Returns: pathlib.Path
+        Generates a separate path name for the model to be saved to
+        using the save/load functionality recommended for the module.
+
+    get_model_state. Returns: _Picklable
+        Retrieves the model's state.
+
+    set_model_state. Returns: _Model.
+        Calls any internal load function used by the model.
+
+    save. Returns: PathLike
+        Calls any internal save function used by the model.
+
+    load. Returns: _Model.
+        Retrieves a saved state and calls any internal load function
+        used by the model.
+
+    Methods
+    -------
+    get_match_description. Returns: str.
+        Maps to _check_model's method of the same name. Describes the
+        conditions required for the SaveLoad Handler to be called.
+
+    has_check_model. Returns: bool.
+        Checks whether this class has a _check_model class attribute.
+
+    match_cls_progeny. Returns: Iterable containing class or a subclass.
+        Recursive class method. Returns correct handler class for the
+        given model.
+    """
+    @abstractmethod
+    def get_model_path(self, path: PathLike, model: _Model) -> Path:
+        pass
+
+    @abstractmethod
+    def get_model_state(
+        self,
+        model: _Model
+    ) -> _Picklable:
+        pass
+
+    @abstractmethod
+    def set_model_state(
+        self,
+        model: _Model,
+        state: Mapping
+    ) -> _Model:
+        pass
+
+    @abstractmethod
+    def save(
+        self,
+        to: PathLike,
+        model: _Model,
+        **kwargs
+    ) -> PathLike:
+        pass
+
+    @abstractmethod
+    def load(
+        self,
+        model: type[_Model],
+        path: PathLike,
+        **kwargs
+    ) -> _Model:
+        pass
+
+SaveLoadHandler = TypeVar(
+    'SaveLoadHandler',
+    bound = '_SaveLoadHandler'
+)
+class _SaveLoadHandler(ABC, ImplementHandlerMixin):
+    """
+    Used for type annotations in methods.
+    """
+    @classmethod
+    def __subclasshook__(
+        cls: type[SaveLoadHandler],
+        C: type
+    ) -> bool:
+        return {BaseHandler, ImplementHandlerMixin}.issubset(set(C.mro()))
+
 ######################
 ### Abstract Component Handler
-class AbstractComponetHandler:
+_AbstractComponentHandler = TypeVar(
+    '_AbstractComponentHandler',
+    bound = 'AbstractComponentHandler'
+)
+class AbstractComponentHandler:
     """
     Component handler classes load the corresponding implement and 
     hyperparameter handler classes for a component used as a step in a 
@@ -390,15 +522,28 @@ class AbstractComponetHandler:
         only intended way to provide a value to this property is through
         the _set_handlers method.
 
+    saveload_handler: _SaveLoadHandler.
+        Stores the saving and loading handler. No set function is given,
+        the only intended way to provide a value to this property is
+        through the _set_handlers method.
+
+    Abstract Class Methods
+    ----------------------
+    load. Returns: _AbstractComponentHander.
+        Loads a saved ComponentHandler state.
+
     Abstract Methods
     ----------------
     _set_handlers. Returns: None.
-        Retreives the Hyperparameter and Implement Handler classes 
-        corresponding to the model passed; these classes are stored in 
-        the properties noted above.
+        Retreives the HyperparameterHandler, ImplementHandler, and
+        SaveLoadHandler classes corresponding to the model passed; these
+        classes are stored in the properties noted above.
+
+    save. Returns: None
+        Saves model and ComponentHandler wrapper.
 
     update_kwargs. Returns: None.
-        Calls hyperparameter handler to update the models 
+        Calls hyperparameter handler to update the models
         hyperparameters, the model will be treated as newly instanced
         on update.
 
@@ -411,6 +556,15 @@ class AbstractComponetHandler:
     train_apply. Returns: Iterable.
         Calls implement handler to train and process data X.
     """
+
+    @classmethod
+    @abstractmethod
+    def load(
+        cls: type[_AbstractComponentHandler],
+        Path: PathLike
+    ) -> _AbstractComponentHandler:
+        pass
+
     step_name: _step_name
 
     @property
@@ -431,10 +585,22 @@ class AbstractComponetHandler:
     def implement_handler(self) -> _ImplementHandler:
         pass
 
+    @property
+    @abstractmethod
+    def saveload_handler(self) -> _SaveLoadHandler:
+        pass
+
     @abstractmethod
     def _set_handlers(
         self, 
         model: Union[_Model, type[_Model]]
+    ) -> None:
+        pass
+
+    @abstractmethod
+    def save(
+        self,
+        Path: PathLike
     ) -> None:
         pass
 
@@ -460,7 +626,7 @@ class AbstractComponetHandler:
 
 
 ### type alias
-_ComponentHandler = AbstractComponetHandler
+_ComponentHandler = AbstractComponentHandler
 
 ######################
 ### Abstract Modelling Pipeline
@@ -544,7 +710,7 @@ class AbstractModellingPipeline:
         if isinstance(component, dict):
             return component['step_name']
         else:
-            component: AbstractComponetHandler
+            component: AbstractComponentHandler
             return component.step_name
 
 

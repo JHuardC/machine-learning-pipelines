@@ -7,7 +7,7 @@ create a bespoke hyperparameter handler for a given model.
 
 Created on: Sat 31 Dec 2022
 
-@author: Joe Huard
+@author: JHuardC
 """
 ###################
 ### Imports
@@ -53,6 +53,12 @@ class AbstractHyperparameterHandler(BaseHandler, HyperparameterHandlerMixin):
     _call_without_hyperparameters. Returns: Model.
         When no hyperparameter values have been specified. Generally 
         implies do nothing but return the model argument as is.
+    
+    __getstate__. Returns: dict.
+        Gets key instance attributes.
+    
+    __setstate__. Returns: None.
+        Sets key instance attributes.
     
     Methods
     -------
@@ -129,6 +135,7 @@ class AbstractHyperparameterHandler(BaseHandler, HyperparameterHandlerMixin):
             return self._call_without_hyperparameters(model = model)
 
         elif isinstance(model, type):
+            self.current_kwargs = kwargs
             return self._call_with_model_object(model, **kwargs)
 
         else:
@@ -173,6 +180,14 @@ class SimpleHyperparameterHandler(AbstractHyperparameterHandler):
         Recursive class method. Returns correct handler class for the 
         given model.
     """
+    def __getstate__(self) -> dict:
+        return dict()
+    
+
+    def __setstate__(self, state: dict) -> None:
+        pass
+
+    
     def _call_without_hyperparameters(
         self, model: Union[_Model, type[_Model]]
     ) -> _Model:
@@ -180,6 +195,7 @@ class SimpleHyperparameterHandler(AbstractHyperparameterHandler):
             raise ValueError('No arguments passed to initialize model.')
         else:
             return model
+
 
     def _call_with_model_object(
         self,
@@ -241,6 +257,17 @@ class InitializeToUpdateHandler(AbstractHyperparameterHandler):
         Recursive class method. Returns correct handler class for the 
         given model.
     """
+    def __getstate__(self) -> dict:
+        state = dict()
+        if hasattr(self, 'initial_kwargs'):
+            state['initial_kwargs'] = self.initial_kwargs
+        return state
+    
+
+    def __setstate__(self, state: dict) -> None:
+        self.__dict__.update(state)
+
+    
     def _call_without_hyperparameters(
         self, model: Union[_Model, type[_Model]]
     ) -> type[_Model]:
@@ -322,6 +349,22 @@ class TrainOnInitializationHandler(AbstractHyperparameterHandler):
         Recursive class method. Returns correct handler class for the 
         given model.
     """
+    def __getstate__(self) -> dict:
+        state = dict()
+        if hasattr(self, (tmp := 'initial_kwargs')):
+            state[tmp] = self.initial_kwargs
+
+        tmp = f'_{self.__class__.__name__}__updated_kwargs'
+        if hasattr(self, tmp):
+            state[tmp] = self.__updated_kwargs
+
+        return state
+
+
+    def __setstate__(self, state: dict) -> None:
+        self.__dict__.update(state)
+
+
     @property
     @abstractmethod
     def data_kwarg(self) -> str:
@@ -329,6 +372,7 @@ class TrainOnInitializationHandler(AbstractHyperparameterHandler):
         Parameter name for training data in Model's initialization.
         """
         pass
+
 
     def _get_stored_kwargs(self) -> dict:
         return getattr(

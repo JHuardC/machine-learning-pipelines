@@ -7,7 +7,7 @@ create a bespoke implement handler for a given model.
 
 Created on: Tue 03 Jan 2023
 
-@author: Joe Huard
+@author: JHuardC
 """
 ###################
 ### Imports
@@ -99,6 +99,12 @@ class AbstractImplementHandler(BaseHandler, ImplementHandlerMixin):
 
     _apply: Iterable.
         Applies model to data.
+
+    __getstate__. Returns: dict.
+        Gets key instance attributes.
+    
+    __setstate__. Returns: None.
+        Sets key instance attributes.
         
     Methods
     -------
@@ -204,19 +210,10 @@ class AbstractImplementHandler(BaseHandler, ImplementHandlerMixin):
     
     def apply(
         self,
-        pipeline: Union[_ModellingPipeline, None],
         model: _Model,
         X: Iterable
     ) -> Iterable:
-
-        output = self._apply(model = model, X = X)
-
-        if pipeline != None:
-            self._update_pipeline_env(
-                pipeline = pipeline, model = model
-            )
-
-        return output
+        return self._apply(model = model, X = X)
 
 
     def train_apply(
@@ -283,6 +280,12 @@ class SupervisedTrainOnInitImplementer(AbstractImplementHandler):
 
     _apply: Iterable.
         Applies model to data.
+
+    __getstate__. Returns: dict.
+        Gets key instance attributes.
+    
+    __setstate__. Returns: None.
+        Sets key instance attributes.
         
     Methods
     -------
@@ -398,6 +401,12 @@ class UnsupervisedTrainOnInitImplementer(AbstractImplementHandler):
 
     _apply: Iterable.
         Applies model to data.
+
+    __getstate__. Returns: dict.
+        Gets key instance attributes.
+    
+    __setstate__. Returns: None.
+        Sets key instance attributes.
         
     Methods
     -------
