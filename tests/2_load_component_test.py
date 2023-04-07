@@ -78,4 +78,4 @@ if __name__ == '__main__':
     corpora = [corpus_dict.doc2bow(text) for text in corpora]
 
     ### Train models
-    output = pipeline.train_apply_pipeline(X = corpora)
+    output = pipeline.apply_pipeline(X = corpora)
