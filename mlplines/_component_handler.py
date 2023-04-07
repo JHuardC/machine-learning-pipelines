@@ -501,11 +501,11 @@ class ComponentHandler(AbstractComponentHandler):
         )
         self.save_model(model_path, **model_save_kwargs)
 
+        self_state = self.get_handler_state()
+        self_state.update(model_state = model_path)
+
         with open(to, mode) as f:
-            writer(
-                self.get_handler_state().update(model_state = model_path),
-                f
-            )
+            writer(self_state, f)
 
 
     def update_kwargs(
