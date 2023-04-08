@@ -14,8 +14,12 @@ The Machine Learning Pipelines (MLP) repo has been developed to help coordinate 
 **README Contents:**
 
 - [Local Build](#Local-Build)
-- [Usage Example](#Usage-Example)
 - [Test Data - Source and Description](#Test-Data---Source-and-Description)
+- [Usage Example](#Usage-Example)
+  - [Part 1 - Imports](#Part-1---Imports)
+  - [Part 2 - Preprocessing Data](#Part-2---Preprocessing-Data)
+  - [Part 3 - Initializing `ModellingPipeline` instance](#Part-3---Initializing-`ModellingPipeline`-instance)
+  - [Part 4 - Using the pipeline](#Part-4---Using-the-pipeline)
 - [Conceptual Overview of machine-learning-pipelines](#Conceptual-overview)
 - [Extending pipelines to handle new packages](#Extending-pipelines-to-handle-new-packages)
 - [The ModellingPipeline environment](#The-ModellingPipeline-environment)
@@ -64,17 +68,27 @@ Petitions submitted to petition parliament are classified as public sector infor
 
 ## Usage Example
 
-Example code below comes from [0_import_test.py](tests/0_import_test.py). The code shows how to create a `ModellingPipeline` instance and use it to train components on data.
+Example code below comes from [0_import_test.py](tests/0_import_test.py). The code shows how to create a `ModellingPipeline` instance and use it to perfom topic modelling on the test data from petition parliament.
 
-Part 1 - imports and preprocessing test data.
+Note that topic modelling is and unsupervised modelling technique: `machine-learning-pipelines` has been developed to handle both supervised and unsupervised modelling.
+
+### Part 1 - Imports
+
+Note that the import for topic modelling at the bottom of the following code snippet is importing classes from the `gensim` package, `machine-learning-pipelines` already has builtin extensions available to handle classes from this package.
 
 ```python
-from mlplines import ModellingPipeline # key class from machine-learning-pipelines
+# key class from machine-learning-pipelines
+from mlplines import ModellingPipeline
 
+# Useful additional imports
 import logging
 from tutils import DATA_PATH
 from functools import partial
+
+# Import method for loading data
 from pandas import read_parquet
+
+# Import for text preprocessing
 from gensim.parsing.preprocessing import\
     preprocess_string,\
     strip_tags,\
@@ -85,9 +99,16 @@ from gensim.parsing.preprocessing import\
     remove_stopwords
 
 from gensim.corpora import Dictionary
+
+# Import for topic modelling
 from gensim.models import TfidfModel, LdaModel
+```
 
+### Part 2 - Preprocessing Data
 
+Setting up logging has been included in the following snippet as it will help track the process of `gensim`'s topic modelling algorithms
+
+```Python
 ### Set up logging
 logging.basicConfig(
     format='%(asctime)s : %(levelname)s : %(message)s',
@@ -118,7 +139,9 @@ corpora = [corpus_dict.doc2bow(text) for text in corpora]
 
 ```
 
-Part 2 - Initializing ```ModellingPipeline``` instance:
+### Part 3 - Initializing `ModellingPipeline` instance
+
+Similar to how [pipelines in scikit-learn](https://scikit-learn.org/stable/modules/compose.html#usage) are built, `ModellingPipeline` requires the order to use `TfidfModel` and `LdaModel` to be specified first:
 
 ```Python
 sequence = [
@@ -149,9 +172,7 @@ pipeline = ModellingPipeline(sequence = sequence)
 
 The order in which the preprocessor and gensim models were placed in the sequence variable represents the order in which these objects will be applied to the data in the pipeline.
 
-Note how this alternate form did not require `ComponentHandler` to be imported.
-
-Part 3 - Using the pipeline on full text of petitions sampled:
+### Part 4 - Using the pipeline
 
 ```Python
 ### Train and extract topic weights
