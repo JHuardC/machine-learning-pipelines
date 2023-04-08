@@ -15,6 +15,7 @@ The Machine Learning Pipelines (MLP) repo has been developed to help coordinate 
 
 - [Local Build](#Local-Build)
 - [Usage Example](#Usage-Example)
+- [Test Data - Source and Description](#Test-Data---Source-and-Description)
 - [Conceptual Overview of machine-learning-pipelines](#Conceptual-overview)
 - [Extending pipelines to handle new packages](#Extending-pipelines-to-handle-new-packages)
 - [The ModellingPipeline environment](#The-ModellingPipeline-environment)
@@ -52,9 +53,18 @@ A secondary 'package' is included in this repository, named test-utils. To utili
 [Back to top](#Machine-Learning-Pipelines)
 
 
+## Test Data - Source and Description
+
+The test data - [petitions_sample.pqt](tests/test_data/petitions_sample.pqt) - is a random sample sourced from [petition parliament](https://petition.parliament.uk/petitions).
+
+Petitions submitted to petition parliament are classified as public sector information and licensed for use under the [Open Government Licence v3.0](https://www.nationalarchives.gov.uk/doc/open-government-licence/version/3/).
+
+[Back to top](#Machine-Learning-Pipelines)
+
+
 ## Usage Example
 
-Example code below comes from [0_import_test.py](tests/0_import_test.py). The code will show how to created a `ModellingPipeline` instance and use it to train components on data.
+Example code below comes from [0_import_test.py](tests/0_import_test.py). The code shows how to create a `ModellingPipeline` instance and use it to train components on data.
 
 Part 1 - imports and preprocessing test data.
 
