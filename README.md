@@ -18,7 +18,7 @@ The Machine Learning Pipelines (MLP) repo has been developed to help coordinate 
 - [Usage Example](#Usage-Example)
   - [Part 1 - Imports](#Part-1---Imports)
   - [Part 2 - Preprocessing Data](#Part-2---Preprocessing-Data)
-  - [Part 3 - Initializing `ModellingPipeline` instance](#Part-3---Initializing-`ModellingPipeline`-instance)
+  - [Part 3 - Initializing `ModellingPipeline` instance](#Part-3---Initializing-ModellingPipeline-instance)
   - [Part 4 - Using the pipeline](#Part-4---Using-the-pipeline)
 - [Conceptual Overview of machine-learning-pipelines](#Conceptual-overview)
 - [Extending pipelines to handle new packages](#Extending-pipelines-to-handle-new-packages)
