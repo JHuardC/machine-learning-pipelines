@@ -335,7 +335,7 @@ class ModellingPipeline(AbstractModellingPipeline):
         """
         Trains model and updates pipeline's trained_threshold.
         """
-        if component_idx >= self.update_threshold:
+        if (component_idx >= self.update_threshold) or len(updates):
             self._update_component(component_idx, component, **updates)
 
         if component_idx > self.trained_threshold:
